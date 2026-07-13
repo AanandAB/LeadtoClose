@@ -190,12 +190,19 @@ LeadToClose/
 
 ## Getting Started
 
-### Prerequisites
+### Quick Install (Windows)
+
+Download the latest installer from [Releases](https://github.com/AanandAB/LeadtoClose/releases) and run `LeadToClose-Setup-v1.1.0.exe`.
+
+### Build from Source
+
+**Prerequisites**
 
 - Flutter SDK 3.24 or later
 - Windows (primary target), Android, iOS, or Web
+- [Inno Setup 6](https://jrsoftware.org/isinfo.php) (for building the Windows installer)
 
-### Installation
+**Installation**
 
 ```bash
 git clone https://github.com/AanandAB/LeadtoClose.git
@@ -203,8 +210,12 @@ cd LeadtoClose
 flutter pub get
 flutter run -d windows
 
-# Build release
+# Build release EXE
 flutter build windows --release
+
+# Build Windows installer (requires Inno Setup)
+iscc setup.iss
+# Output: installer/LeadToClose-Setup-v1.1.0.exe
 ```
 
 ### First Run
