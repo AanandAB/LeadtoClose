@@ -20,7 +20,15 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
   String _homeState = 'Kerala';
 
   static const _structures = ['Sole Proprietor', 'OPC', 'LLP'];
-  static const _states = ['Kerala','Tamil Nadu','Karnataka','Maharashtra','Delhi','Gujarat','Uttar Pradesh','West Bengal','Rajasthan','Telangana','Andhra Pradesh','Other'];
+  static const _states = [
+    'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
+    'Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh',
+    'Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab',
+    'Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh',
+    'Uttarakhand','West Bengal',
+    'Andaman & Nicobar Islands','Chandigarh','Dadra & Nagar Haveli','Daman & Diu',
+    'Delhi','Jammu & Kashmir','Ladakh','Lakshadweep','Puducherry',
+  ];
 
   @override
   void initState() {

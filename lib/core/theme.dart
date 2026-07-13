@@ -1,34 +1,32 @@
-
 import 'package:flutter/material.dart';
 
 class AppColors {
   AppColors._();
 
-  // Primary palette
-  static const primary = Color(0xFF6366F1);
-  static const primaryLight = Color(0xFF818CF8);
-  static const primaryDark = Color(0xFF4F46E5);
+  // Primary
+  static const primary = Color(0xFF3B82F6);
+  static const primaryLight = Color(0xFF60A5FA);
 
   // Background
-  static const bgDeep = Color(0xFF0B1121);
-  static const bgMid = Color(0xFF111827);
-  static const bgSurface = Color(0xFF1E293B);
-  static const bgCard = Color(0xFF1A2332);
+  static const bgDeep = Color(0xFF111111);
+  static const bgMid = Color(0xFF181818);
+  static const bgSurface = Color(0xFF1E1E1E);
+  static const bgCard = Color(0xFF1A1A1A);
 
   // Accents
-  static const success = Color(0xFF10B981);
+  static const success = Color(0xFF22C55E);
   static const warning = Color(0xFFF59E0B);
   static const danger = Color(0xFFEF4444);
   static const info = Color(0xFF3B82F6);
 
   // Text
-  static const textPrimary = Color(0xFFF1F5F9);
-  static const textSecondary = Color(0xFF94A3B8);
-  static const textMuted = Color(0xFF64748B);
+  static const textPrimary = Color(0xFFFFFFFF);
+  static const textSecondary = Color(0xFFAAAAAA);
+  static const textMuted = Color(0xFF666666);
 
   // Borders
-  static const borderLight = Color(0xFF334155);
-  static const borderGlow = Color(0xFF6366F1);
+  static const borderLight = Color(0xFF2A2A2A);
+  static const borderGlow = Color(0xFF3B82F6);
 }
 
 class AppTypography {
@@ -37,17 +35,17 @@ class AppTypography {
   static const _family = 'Inter';
 
   static TextStyle displayLarge([BuildContext? _]) => TextStyle(
-    fontFamily: _family, fontSize: 28, fontWeight: FontWeight.w700,
-    letterSpacing: -0.5, color: AppColors.textPrimary, height: 1.2,
+    fontFamily: _family, fontSize: 26, fontWeight: FontWeight.w700,
+    letterSpacing: -0.5, color: AppColors.textPrimary, height: 1.15,
   );
 
   static TextStyle heading1([BuildContext? _]) => TextStyle(
-    fontFamily: _family, fontSize: 22, fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary, height: 1.3,
+    fontFamily: _family, fontSize: 20, fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary, height: 1.25,
   );
 
   static TextStyle heading2([BuildContext? _]) => TextStyle(
-    fontFamily: _family, fontSize: 18, fontWeight: FontWeight.w600,
+    fontFamily: _family, fontSize: 16, fontWeight: FontWeight.w600,
     color: AppColors.textPrimary, height: 1.3,
   );
 
@@ -63,21 +61,21 @@ class AppTypography {
 
   static TextStyle caption([BuildContext? _]) => TextStyle(
     fontFamily: _family, fontSize: 11, fontWeight: FontWeight.w500,
-    color: AppColors.textMuted, letterSpacing: 0.5,
+    color: AppColors.textMuted, letterSpacing: 0.4,
   );
 
   static TextStyle label([BuildContext? _]) => TextStyle(
     fontFamily: _family, fontSize: 12, fontWeight: FontWeight.w600,
-    color: AppColors.textSecondary, letterSpacing: 0.5,
+    color: AppColors.textSecondary, letterSpacing: 0.3,
   );
 
   static TextStyle buttonText([BuildContext? _]) => TextStyle(
     fontFamily: _family, fontSize: 14, fontWeight: FontWeight.w600,
-    color: Colors.white, letterSpacing: 0.3,
+    color: Colors.white, letterSpacing: 0.2,
   );
 
   static TextStyle price([BuildContext? _]) => TextStyle(
-    fontFamily: _family, fontSize: 20, fontWeight: FontWeight.w700,
+    fontFamily: _family, fontSize: 18, fontWeight: FontWeight.w700,
     color: AppColors.success, letterSpacing: -0.3,
   );
 }
@@ -106,24 +104,24 @@ class AppTheme {
         color: AppColors.bgCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: AppColors.borderLight.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: AppColors.borderLight),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.bgSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         labelStyle: AppTypography.label(null),
@@ -134,31 +132,31 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: AppTypography.buttonText(null),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textSecondary,
-          side: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          side: const BorderSide(color: AppColors.borderLight),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       dialogTheme: DialogTheme(
         backgroundColor: AppColors.bgCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         titleTextStyle: AppTypography.heading2(null),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.bgSurface,
         contentTextStyle: AppTypography.body(null),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         behavior: SnackBarBehavior.floating,
       ),
-      dividerColor: AppColors.borderLight.withOpacity(0.3),
+      dividerColor: AppColors.borderLight,
     );
   }
 }

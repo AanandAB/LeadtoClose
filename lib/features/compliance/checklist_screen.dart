@@ -65,7 +65,7 @@ class _ChecklistScreenState extends ConsumerState<ChecklistScreen> {
           margin: const EdgeInsets.all(20),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.2), AppColors.primaryDark.withOpacity(0.1)]),
+            gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.15), AppColors.primary.withOpacity(0.05)]),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
