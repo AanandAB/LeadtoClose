@@ -17,6 +17,7 @@ import '../features/payments/payment_tracker_screen.dart';
 import '../features/tax/tax_calendar_screen.dart';
 import '../features/tax/turnover_tracker_screen.dart';
 import '../features/rules/rules_viewer_screen.dart';
+import '../features/communication/communication_screen.dart';
 import '../features/settings/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -91,6 +92,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/rules-engine',
         builder: (context, state) => const RulesViewerScreen(),
+      ),
+      GoRoute(
+        path: '/lead/:id/messages',
+        builder: (context, state) => CommunicationScreen(leadId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/settings',
