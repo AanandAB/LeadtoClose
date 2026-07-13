@@ -5,8 +5,9 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Android%20%7C%20iOS%20%7C%20Web-blue)](https://flutter.dev)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.24-02569B?logo=flutter)](https://flutter.dev)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/AanandAB/LeadtoClose/releases)
 
-> One app that takes a freelance project from first conversation to closed-won and paid — where Indian legal and compliance intelligence is baked into a rules engine, so every quote, contract, and invoice is automatically correct for the specific project type.
+> One app that takes a freelance project from first conversation to closed-won and paid — where Indian legal and compliance intelligence is baked into a rules engine, so every quote, contract, invoice, and client message is automatically correct for the specific project type.
 
 ---
 
@@ -19,6 +20,7 @@ As a freelance web/software developer in India, every project requires you to *m
 - Draft a contract from scratch, hoping you didn't forget a clause
 - Track leads through negotiation manually (WhatsApp threads, memory)
 - Generate GST/TDS-correct invoices
+- Write client emails and WhatsApp messages at every stage
 - Chase payment with no structured escalation path
 
 **LeadToClose fixes all of this.**
@@ -27,77 +29,99 @@ As a freelance web/software developer in India, every project requires you to *m
 
 ## Features
 
-### 🏗️ Pipeline & CRM
+### Pipeline & CRM
 - **7-stage Kanban board** — New Lead → Qualified → Discovery Done → Quote Sent → Negotiating → Won → Lost
 - Quick-add lead form with source tracking
 - Lead detail with activity log, notes, stage management
 - Analytics dashboard with pipeline breakdown
 
-### 🔍 Discovery Questionnaire
-- **11 guided dropdown questions** — 2-3 minutes, no free text required
-- Classifies project type, data collection, payments, client location, hosting, IP ownership
-- Feeds directly into the compliance rules engine
+### Discovery Questionnaire (26 Questions, 7 Sections)
+- **Guided section-based wizard** with progress indicators
+- **7 themed sections:** Project Type & Scope, Client Details, Data & Privacy, Commerce & Payments, Hosting & Maintenance, IP & Assets, Legal & Contract
+- Multi-select for features, data types, and target audience
+- **Help text on every question** explaining *why* it matters legally
+- Based on comprehensive Indian freelance legal research — `freelance-legal-guide-india.md` and `website-handover-legal-compliance-india.md`
 
-### ⚖️ Compliance Rules Engine (17 Rules)
+### Compliance Rules Engine (35+ Rules)
 - **Pure, testable function** — `ProjectProfile → ComplianceChecklist`
-- Covers: DPDPA 2023, GDPR, CCPA, CERT-In, Consumer Protection E-Commerce Rules, Legal Metrology, GST inter-state/export, IP assignment
+- Covers: DPDPA 2023, GDPR, CCPA, CERT-In, Consumer Protection E-Commerce Rules, Legal Metrology, GST, Copyright Act, IT Act, MSME Act, SPDI Rules, Limitation Act
 - Every rule maps a discovery answer to a compliance action
 - Categorized: Build / Contract / Advisory / Invoicing
-- Viewable in-app at `/rules-engine`
+- Viewable in-app at `/rules-engine` — 35+ expandable rule cards with triggers and contract clause previews
 
-### 💰 Quote Generator
+### Quote Generator
 - Auto-assembles line items from project tier + compliance add-ons
 - GST treatment: CGST+SGST / IGST / Zero-Rated (Export) / Not Registered
-- Configurable rate card per project tier
+- Configurable rate card per project tier (Basic ₹15K through Enterprise ₹3.5L)
+- Compliance line items auto-priced (DPDPA, E-commerce, CERT-In, IP premium)
 - PDF export — professional branded quotes
 
-### 📜 Contract Generator
+### Contract Generator
 - **13+ clause Service Agreement** auto-generated from project profile
-- **Standard clauses:** Scope of Work, Payment Terms, Timeline, Revisions, Confidentiality, Termination, Indemnification, Electronic Execution (IT Act 2000)
+- **Standard clauses:** Scope of Work, Payment Terms, Timeline, Revisions, Confidentiality, Termination, Indemnification, Electronic Execution (IT Act Section 10-A)
 - **Conditional clauses** triggered by discovery answers:
   - DPDPA Data Processor clause
   - CERT-In incident reporting + 180-day logging
   - E-commerce content responsibility
   - IP Assignment vs License
   - Indian jurisdiction for export clients
+  - Data export + transition on termination (for SaaS)
 - Non-removable legal disclaimer on every contract
 - PDF export — proper legal formatting
 
-### 🧠 IP Assessment
+### IP Assessment
 - Standalone 3-question wizard
 - Recommends Assignment vs License based on reuse and resale plans
 - Pricing premium calculator (30-50% for full IP transfer)
-- Client-facing plain-language explainer
+- Client-facing plain-language explainer — ready to share
 
-### 🧾 Invoice Generator
+### Invoice Generator
 - **GST/TDS-aware** — auto-calculates CGST/SGST, IGST, zero-rated export
 - Expected TDS deduction shown (10% u/s 194J) — never surprised by lower bank credit
-- SAC codes auto-mapped (998314 for IT services)
+- SAC codes auto-mapped (998314 IT consulting, 998364 web design)
 - Sequential invoice numbering (statutory requirement)
 - Multi-currency support (USD for foreign clients)
 - PDF export — PAN, GSTIN, SAC code, bank details, CA-ready
 
-### 💸 Payment Recovery
+### Payment Recovery
 - **Interactive 6-step escalation ladder** with a day-overdue slider:
   1. **Day 1+** — Friendly reminder
   2. **Day 15+** — Firm reminder + late fee recalculation
-  3. **Day 30+** — Legal notice summary
+  3. **Day 30+** — Legal notice summary (ready for lawyer)
   4. **Day 45+** — MSME Samadhaan complaint (if Udyam registered)
   5. **Day 60+** — District Consumer Commission
   6. **Day 90+** — Civil suit reference pack
 - **Limitation period countdown** — 3-year tracker (Limitation Act, 1963)
+- **Udyam toggle** that gates MSME Samadhaan access
 
-### 📊 Tax & Compliance Calendar
-- **44ADA recommender** — presumptive vs ITR-3, flags ₹50L/₹75L threshold breach
+### Communication Generator (NEW in v1.1)
+- **12 message templates** for every pipeline stage — New Lead through Payment Received
+- **Both Email and WhatsApp** formats for each template
+- **Email:** Full subject line + body with lead name, project type, quote totals, GST treatment, bank details
+- **WhatsApp:** Concise, friendly short format — one-tap copy
+- **Filter tabs:** All / Email / WhatsApp / Payment
+- **Personalized** with live data: business name, owner name, phone, late fee %, quote amounts
+- Covers: Introduction, Qualified follow-up, Discovery summary, Quote sent, Negotiation, Won onboarding, Lost graceful exit, Contract review, Invoice sent, Payment overdue (friendly + firm), Payment received
+
+### Tax & Compliance Calendar
+- **44ADA recommender** — presumptive vs ITR-3, flags ₹50L/₹75L threshold breach, reminds about foreign asset disclosure (Schedule FA)
 - Advance tax schedule — 4 quarterly instalments with estimated liability
-- GST filing calendar — GSTR-1, GSTR-3B, LUT renewal
+- GST filing calendar — GSTR-1 (11th), GSTR-3B (20th), LUT annual renewal with "expired LUT = 18% IGST" warning
 - DTAA / Form 67 foreign tax credit tracker
 - Year-end income summary — hand directly to CA
 
-### 📈 Turnover Tracker
-- Real-time ₹20L GST threshold gauge
-- Inter-state client flag — registration mandatory regardless of turnover
+### Turnover Tracker
+- ₹20L GST threshold gauge with percentage progress
+- **Inter-state client flag** — registration mandatory regardless of turnover
+- PAN-level aggregate reminder
 - What-happens-when-you-cross explainer
+
+### Business Profile
+- All 28 Indian states + 8 union territories in dropdown
+- PAN, GSTIN, Udyam registration fields
+- Business structure picker (Sole Proprietor / OPC / LLP)
+- Late fee percentage (feeds into contract and overdue notices)
+- Bank details for invoice generation
 
 ---
 
@@ -107,35 +131,37 @@ As a freelance web/software developer in India, every project requires you to *m
 LeadToClose/
 ├── lib/
 │   ├── main.dart                          # Entry point
-│   ├── app.dart                           # MaterialApp.router with dark theme
+│   ├── app.dart                           # MaterialApp.router
 │   ├── providers.dart                     # Riverpod providers
 │   ├── core/
-│   │   ├── theme.dart                     # AppColors, AppTypography, AppTheme
-│   │   └── router.dart                    # GoRouter with 14 routes
+│   │   ├── theme.dart                     # Clean dark theme
+│   │   └── router.dart                    # GoRouter with 15 routes
 │   ├── models/
-│   │   ├── business_profile.dart          # Freelancer's own data
+│   │   ├── business_profile.dart          # 36 states, PAN, GSTIN, Udyam
 │   │   ├── lead.dart                      # Lead with notes, profile ref
-│   │   ├── project_profile.dart           # 11 discovery answers
+│   │   ├── project_profile.dart           # 27 discovery fields
 │   │   ├── compliance_item.dart           # Checklist items
 │   │   ├── quote.dart                     # Quote with line items
 │   │   ├── contract.dart                  # Contract with clauses
-│   │   └── invoice.dart                   # Invoice with GST/TDS
+│   │   └── invoice.dart                   # GST/TDS invoice
 │   ├── services/
 │   │   ├── storage_service.dart           # Hive persistence
-│   │   ├── rules_engine.dart              # Pure function: profile → checklist
+│   │   ├── rules_engine.dart              # 35+ rules: profile → checklist
 │   │   ├── quote_service.dart             # Quote generation
 │   │   ├── contract_service.dart          # Contract assembly + PDF
 │   │   ├── invoice_service.dart           # Invoice generation + PDF
+│   │   ├── communication_service.dart     # 12 email + WhatsApp templates
 │   │   └── pdf_service.dart               # Quote PDF export
 │   └── features/
 │       ├── onboarding/                    # Business profile setup
 │       ├── dashboard/                     # Pipeline + Leads + Analytics
 │       ├── pipeline/                      # Lead form, lead detail
-│       ├── discovery/                     # 11-question questionnaire
+│       ├── discovery/                     # 26-question, 7-section wizard
 │       ├── compliance/                    # Checklist screen
 │       ├── quotes/                        # Quote, contract, IP assessment
 │       ├── invoices/                      # Invoice screen
 │       ├── payments/                      # Payment recovery
+│       ├── communication/                 # Message templates ← NEW
 │       ├── tax/                           # Tax calendar, turnover tracker
 │       ├── rules/                         # Rules engine viewer
 │       └── settings/                      # Settings screen
@@ -147,18 +173,18 @@ LeadToClose/
 |-------|--------|
 | Framework | Flutter 3.24 / Dart 3.5 |
 | State | Riverpod 2.x |
-| Navigation | GoRouter 14.x |
+| Navigation | GoRouter 14.x (15 routes) |
 | Storage | Hive (local, no backend required) |
 | PDF | `pdf` + `printing` packages |
-| Theme | Custom dark glassmorphism design system |
+| Theme | Clean dark theme, single blue accent |
 
 ### Design Decisions
 
 - **Rules engine is a pure function** — `ProjectProfile → ComplianceChecklist`. Zero UI dependencies, independently unit-testable.
 - **Contract clauses and compliance checklist share the same triggers** — single source of truth prevents drift.
-- **Config-driven rate card and rules** — update a JSON or in-app config when GST thresholds or DPDPA dates change, not code.
+- **Config-driven rate card and rules** — update in-app when GST thresholds or DPDPA dates change, not code.
 - **All data stays local** — Hive stores everything on-device. No cloud dependency for a single-user app.
-- **Declarative conditional content** — every clause, line item, and advisory is tagged with the discovery answer that triggered it.
+- **Declarative conditional content** — every clause, line item, advisory, and message template is tagged with the discovery answer that triggered it.
 
 ---
 
@@ -172,14 +198,9 @@ LeadToClose/
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/AanandAB/LeadtoClose.git
 cd LeadtoClose
-
-# Install dependencies
 flutter pub get
-
-# Run on Windows
 flutter run -d windows
 
 # Build release
@@ -188,12 +209,14 @@ flutter build windows --release
 
 ### First Run
 
-1. Launch the app — you'll land on the **Business Profile** setup screen
-2. Fill in your PAN, GSTIN (if registered), Udyam number (if registered), home state, and banking details
-3. Click **Save & Continue** — you're on the dashboard
-4. Click **New Lead** to create your first lead
-5. Open the lead → **Discovery** to run the questionnaire
-6. View the **Compliance Checklist** → **Generate Quote** → **Contract** → **Invoice**
+1. Launch — you'll land on **Business Profile** setup
+2. Fill in PAN, GSTIN, Udyam number, home state (all 36 Indian states/UTs), banking details
+3. Save → Dashboard
+4. **New Lead** → enter client details
+5. Open lead → **Discovery** → answer 26 questions across 7 themed sections
+6. View **Compliance Checklist** → **Generate Quote** → **Contract** → **Invoice**
+7. Use **Messages** at any stage for ready-to-send email + WhatsApp templates
+8. Track payments with the **Payment Recovery** escalation ladder
 
 ---
 
@@ -201,32 +224,33 @@ flutter build windows --release
 
 | Regulation | Coverage |
 |------------|----------|
-| **DPDPA 2023** | Consent flow, privacy notice, data fiduciary/processor clauses, children's data provisions |
+| **DPDPA 2023** | Consent flow (Section 6), privacy notice (Section 5), data fiduciary/processor roles (Section 8), children's data (Section 9), regional language (Section 6(3)), startup exemption (Section 17(3)), breach notification (72 hours), penalties (up to ₹250 crore) |
 | **GDPR** | Cookie consent, data portability, right to erasure (for EU-audience projects) |
 | **CCPA** | Privacy disclosures, opt-out mechanism (for US/California-audience projects) |
-| **CERT-In** | 6-hour incident reporting, 180-day logging, data processor SLA |
-| **Consumer Protection (E-Commerce) Rules 2020** | Grievance Officer block, return/refund/shipping policies |
-| **Legal Metrology** | MRP, net quantity, manufacturer, origin, expiry display fields |
-| **GST** | CGST/SGST/IGST/Zero-rated calculation, inter-state mandatory flag, LUT renewal |
-| **IT Act 2000** | Electronic execution clause (Section 10-A) |
-| **MSME Act** | Samadhaan complaint access, 45-day payment rule |
+| **CERT-In** | 6-hour incident reporting, 180-day logging, NTP synchronization, incident response documentation |
+| **Consumer Protection (E-Commerce) Rules 2020** | Grievance Officer (48h ack, 30d resolve), return/refund/shipping policies, pre-ticked checkbox prohibition, COD classification |
+| **Legal Metrology** | MRP, net quantity, manufacturer, country of origin, expiry display fields |
+| **Copyright Act 1957** | Default ownership (Section 17), assignment requirements (Section 19), 5-year/India-only defaults |
+| **GST** | CGST/SGST/IGST/Zero-rated, inter-state mandatory flag, LUT annual renewal, reverse charge on SaaS imports, PAN-level aggregate |
+| **IT Act 2000** | Electronic execution (Section 10-A), cybercrime penalties, SPDI Rules 2011 |
+| **MSME Act** | Samadhaan complaint access, 45-day payment rule, 3x RBI interest |
+| **FEMA** | FIRA/FIRC tracking, proper banking channels, 6-year record retention |
+| **Income Tax Act 2025** | Section 44ADA presumptive, 194J TDS, advance tax schedule, DTAA/Form 67, Schedule FA (foreign assets), ITR-3 vs ITR-4 guidance |
 | **Limitation Act 1963** | 3-year recovery suit countdown |
-| **Income Tax** | Section 44ADA presumptive, 194J TDS, advance tax, DTAA/Form 67 |
 
 ---
 
 ## Roadmap
 
-- [x] **Phase 1** — Pipeline, Discovery, Compliance Engine, Quotes
-- [x] **Phase 2** — Contract Generator, IP Assessment
-- [x] **Phase 3** — GST/TDS Invoices, Payment Recovery, Tax Calendar
-- [x] **Phase 4** — Turnover Tracker, Rules Engine Viewer
+- [x] **v1.0** — Pipeline, Discovery, Compliance Engine, Quotes, Contracts, Invoices, Payment Recovery, Tax Calendar
+- [x] **v1.1** — Expanded 26-question discovery (7 sections), 35+ rule engine, Communication Generator (12 email + WhatsApp templates), all 36 Indian states/UTs
 - [ ] E-signature integration (DocuSign/Zoho Sign)
 - [ ] Payment gateway for invoice links (Razorpay/Cashfree)
 - [ ] Recurring invoices for retainer clients
 - [ ] Mobile-responsive layout for phone use
 - [ ] Rules engine in-app editor
 - [ ] Data export/import for CA handoff
+- [ ] Unit tests for rules engine and services
 
 ---
 
@@ -244,8 +268,8 @@ This is an open source project aimed at helping Indian freelance developers navi
 
 - **Testing** — unit tests for the rules engine and services
 - **Mobile layout** — responsive design for phone screens
-- **Rule updates** — keeping the rules engine current with evolving Indian law
-- **Localization** — Indian language support
+- **Rule updates** — keeping the rules engine current with evolving Indian law (DPDPA rules, CERT-In penalties, GST thresholds are all actively evolving through 2026-2027)
+- **Localization** — Indian language support (22 scheduled languages)
 - **Documentation** — user guides, video walkthroughs
 
 ---
