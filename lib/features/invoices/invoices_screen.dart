@@ -213,6 +213,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                     icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
                     onSelected: (v) => _handleInvoiceAction(v, invoice),
                     itemBuilder: (_) => [
+                      const PopupMenuItem(value: 'edit', child: Text('Edit Invoice')),
                       if (invoice.status == 'draft')
                         const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
                       if (invoice.status != 'paid')
@@ -232,6 +233,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   }
 
   void _handleInvoiceAction(String action, Invoice invoice) {
+    if (action == 'edit') {
+      _showEditInvoiceDialog(context, invoice);
+      return;
+    }
     if (action == 'send') {
       ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'sent'));
       return;
@@ -258,6 +263,197 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         );
       }
     }
+  }
+
+  void _showEditInvoiceDialog(BuildContext context, Invoice invoice) {
+    final notesCtrl = TextEditingController(text: invoice.notes);
+    String selectedCurrency = invoice.currency;
+    String paymentTerms = invoice.paymentTerms;
+    final items = invoice.lineItems.map((item) {
+      final e = _InvoiceLineItem();
+      e.descCtrl.text = item.description;
+      e.qtyCtrl.text = item.quantity.toStringAsFixed(0);
+      e.priceCtrl.text = item.rate.toStringAsFixed(2);
+      return e;
+    }).toList();
+    if (items.isEmpty) items.add(_InvoiceLineItem());
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('Edit Invoice ${invoice.number}', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 500,
+            height: 420,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCurrency,
+                          decoration: const InputDecoration(labelText: 'Currency'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+                            DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
+                            DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
+                            DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
+                            DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
+                            DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
+                          ],
+                          onChanged: (v) => setDialogState(() => selectedCurrency = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: paymentTerms,
+                          decoration: const InputDecoration(labelText: 'Payment Terms'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
+                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
+                            DropdownMenuItem(value: 'Net 45', child: Text('Net 45')),
+                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60')),
+                            DropdownMenuItem(value: 'Due on Receipt', child: Text('Due on Receipt')),
+                          ],
+                          onChanged: (v) => setDialogState(() => paymentTerms = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text('Line Items', style: AppTypography.heading2(context)),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() => items.add(_InvoiceLineItem())),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add Item'),
+                      ),
+                    ],
+                  ),
+                  ...List.generate(items.length, (i) {
+                    final item = items[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: item.descCtrl,
+                              decoration: InputDecoration(
+                                hintText: 'Description',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.qtyCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Qty',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.priceCtrl,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              decoration: InputDecoration(
+                                hintText: 'Price',
+                                prefixText: AppCurrency.symbol,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          if (items.length > 1)
+                            IconButton(
+                              onPressed: () => setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: notesCtrl,
+                    maxLines: 2,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
+                  const SizedBox(height: 12),
+                  // Total preview
+                  Consumer(
+                    builder: (context, ref, _) {
+                      double total = 0;
+                      for (final item in items) {
+                        final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
+                        final price = double.tryParse(item.priceCtrl.text) ?? 0;
+                        total += qty * price;
+                      }
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Total', style: AppTypography.heading2(context)),
+                            Text(AppCurrency.formatDecimal(total),
+                                style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => InvoiceLineItem(
+                  description: i.descCtrl.text,
+                  quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
+                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                )).toList();
+                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(
+                  lineItems: lineItems,
+                  subtotal: total,
+                  total: total,
+                  currency: selectedCurrency,
+                  paymentTerms: paymentTerms,
+                  notes: notesCtrl.text.trim(),
+                ));
+                Navigator.pop(ctx);
+              },
+              child: const Text('Save Changes'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showCreateInvoiceDialog(BuildContext context) {
