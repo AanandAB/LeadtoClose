@@ -1,105 +1,52 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers.dart';
-import '../features/onboarding/business_profile_screen.dart';
-import '../features/dashboard/dashboard_screen.dart';
-import '../features/pipeline/lead_form_screen.dart';
-import '../features/pipeline/lead_detail_screen.dart';
-import '../features/discovery/questionnaire_screen.dart';
-import '../features/compliance/checklist_screen.dart';
-import '../features/quotes/quote_screen.dart';
-import '../features/quotes/contract_screen.dart';
-import '../features/quotes/ip_assessment_screen.dart';
-import '../features/invoices/invoice_screen.dart';
-import '../features/payments/payment_tracker_screen.dart';
-import '../features/tax/tax_calendar_screen.dart';
-import '../features/tax/turnover_tracker_screen.dart';
-import '../features/rules/rules_viewer_screen.dart';
-import '../features/communication/communication_screen.dart';
+import '../features/shell/main_shell.dart';
+import '../features/onboarding/onboarding_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/clients/client_detail_screen.dart';
+import '../features/projects/project_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final profileNotifier = ref.watch(businessProfileProvider.notifier);
-
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: '/',
     redirect: (context, state) {
-      final profile = ref.read(businessProfileProvider);
+      final settings = ref.read(settingsProvider);
       final isOnboarding = state.matchedLocation == '/onboarding';
 
-      if (profile == null || !profile.isComplete) {
-        if (!isOnboarding) return '/onboarding';
-        return null;
+      if (!settings.isComplete && !isOnboarding) {
+        return '/onboarding';
       }
-      if (isOnboarding) return '/dashboard';
+      if (isOnboarding && settings.isComplete) {
+        return '/';
+      }
       return null;
     },
     routes: [
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const BusinessProfileScreen(),
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
-        path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(),
-      ),
-      GoRoute(
-        path: '/lead/new',
-        builder: (context, state) => const LeadFormScreen(),
-      ),
-      GoRoute(
-        path: '/lead/:id',
-        builder: (context, state) => LeadDetailScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/lead/:id/discovery',
-        builder: (context, state) => QuestionnaireScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/lead/:id/compliance',
-        builder: (context, state) => ChecklistScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/lead/:id/quote',
-        builder: (context, state) => QuoteScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/lead/:id/contract',
-        builder: (context, state) => ContractScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/ip-assessment',
-        builder: (context, state) => const IpAssessmentScreen(),
-      ),
-      GoRoute(
-        path: '/lead/:id/invoice',
-        builder: (context, state) => InvoiceScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/lead/:id/payment',
-        builder: (context, state) => PaymentTrackerScreen(leadId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/tax-calendar',
-        builder: (context, state) => const TaxCalendarScreen(),
-      ),
-      GoRoute(
-        path: '/turnover-tracker',
-        builder: (context, state) => const TurnoverTrackerScreen(),
-      ),
-      GoRoute(
-        path: '/rules-engine',
-        builder: (context, state) => const RulesViewerScreen(),
-      ),
-      GoRoute(
-        path: '/lead/:id/messages',
-        builder: (context, state) => CommunicationScreen(leadId: state.pathParameters['id']!),
+        path: '/',
+        builder: (context, state) => const MainShell(),
       ),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/client/:id',
+        builder: (context, state) => ClientDetailScreen(
+          clientId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/project/:id',
+        builder: (context, state) => ProjectDetailScreen(
+          projectId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );

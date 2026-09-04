@@ -1,7 +1,7 @@
-name: leadtoclose
-description: "Compliance-Aware Freelance Business Management"
+name: naro
+description: "Naro — Client & Project Management for Freelancers"
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: ^3.5.3
@@ -31,3 +31,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/

@@ -1,12 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/lead.dart';
 import '../../providers.dart';
-import '../../services/storage_service.dart';
+import '../../widgets/shared_widgets.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -16,412 +14,532 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  int _currentTab = 0;
-
   @override
   Widget build(BuildContext context) {
     final leads = ref.watch(leadsProvider);
-    final profile = ref.watch(businessProfileProvider);
+    final clients = ref.watch(clientsProvider);
+    final projects = ref.watch(projectsProvider);
+    final invoices = ref.watch(invoicesProvider);
+    final quotes = ref.watch(quotesProvider);
+    final events = ref.watch(eventsProvider);
+    final settings = ref.watch(settingsProvider);
 
-    return Scaffold(
-      body: Row(
-        children: [
-          _buildSidebar(context, profile),
-          Expanded(
-            child: IndexedStack(
-              index: _currentTab,
-              children: [
-                _buildPipeline(leads),
-                _buildLeadsList(leads),
-                _buildAnalytics(leads),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final activeLeads = leads
+        .where((l) =>
+            l.stage != LeadStage.won && l.stage != LeadStage.lost)
+        .length;
+    final wonLeads = leads.where((l) => l.stage == LeadStage.won).length;
+    final overdueLeads =
+        leads.where((l) => l.followUpDate != null && l.isOverdue).length;
 
-  Widget _buildSidebar(BuildContext context, profile) {
-    return Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: AppColors.bgMid,
-        border: Border(right: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
-      ),
+    final totalRevenue = invoices
+        .where((i) => i.status == 'paid')
+        .fold(0.0, (sum, i) => sum + i.total);
+    final outstanding = invoices
+        .where((i) => i.status != 'paid' && i.status != 'cancelled')
+        .fold(0.0, (sum, i) => sum + i.balanceDue);
+    final overdueAmount = invoices
+        .where((i) => i.isOverdue)
+        .fold(0.0, (sum, i) => sum + i.balanceDue);
+
+    final activeProjects =
+        projects.where((p) => p.status.name == 'active').length;
+    final pendingQuotes = quotes.where((q) => q.status == 'sent').length;
+
+    final upcomingEvents = events
+        .where((e) => e.startTime.isAfter(DateTime.now()))
+        .toList()
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    final recentLeads = leads.take(5).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(children: [
-              Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryLight]),
-                  borderRadius: BorderRadius.circular(10),
+          // Header
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Good ${_getGreeting()}',
+                      style: AppTypography.body(context).copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      settings.businessName.isNotEmpty
+                          ? settings.businessName
+                          : 'Dashboard',
+                      style: AppTypography.displayLarge(context),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.business_center, color: Colors.white, size: 18),
               ),
-              const SizedBox(width: 12),
-              Text('LeadToClose', style: AppTypography.heading2(context).copyWith(fontSize: 16)),
-            ]),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Online',
+                      style: AppTypography.label(context).copyWith(
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 32),
-          _navItem(Icons.view_kanban, 'Pipeline', 0),
-          _navItem(Icons.list_alt, 'All Leads', 1),
-          _navItem(Icons.analytics_outlined, 'Analytics', 2),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(children: [
-              if (profile != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgCard,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
-                  ),
-                  child: Row(children: [
-                    Container(
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.person, color: AppColors.primaryLight, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text(profile.businessName, style: AppTypography.label(context), overflow: TextOverflow.ellipsis)),
-                  ]),
+
+          // Revenue stats row
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(
+                  label: 'Total Revenue',
+                  value: '\$${_formatNumber(totalRevenue)}',
+                  color: AppColors.revenue,
+                  icon: Icons.trending_up_rounded,
                 ),
-              const SizedBox(height: 8),
-              _navItemSmall(Icons.gavel, 'IP Assessment', '/ip-assessment'),
-              _navItemSmall(Icons.calendar_month, 'Tax Calendar', '/tax-calendar'),
-              _navItemSmall(Icons.settings, 'Settings', '/settings'),
-            ]),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
+                  label: 'Outstanding',
+                  value: '\$${_formatNumber(outstanding)}',
+                  color: AppColors.warning,
+                  icon: Icons.schedule_rounded,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
+                  label: 'Overdue',
+                  value: '\$${_formatNumber(overdueAmount)}',
+                  color: AppColors.danger,
+                  icon: Icons.warning_amber_rounded,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
+                  label: 'Active Projects',
+                  value: '$activeProjects',
+                  color: AppColors.info,
+                  icon: Icons.folder_open_rounded,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+
+          // Secondary stats
+          Row(
+            children: [
+              Expanded(
+                child: _miniStat(
+                  'Active Leads',
+                  '$activeLeads',
+                  AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  'Won Deals',
+                  '$wonLeads',
+                  AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  'Pending Quotes',
+                  '$pendingQuotes',
+                  AppColors.warning,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  'Overdue Follow-ups',
+                  '$overdueLeads',
+                  AppColors.danger,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+
+          // Content grid
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Needs Attention
+              Expanded(
+                flex: 3,
+                child: _buildNeedsAttention(
+                    context, overdueLeads, overdueAmount, pendingQuotes),
+              ),
+              const SizedBox(width: 20),
+              // Right column
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: [
+                    // Upcoming Events
+                    _buildUpcomingEvents(context, upcomingEvents),
+                    const SizedBox(height: 16),
+                    // Recent Leads
+                    _buildRecentLeads(context, recentLeads),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index) {
-    final active = _currentTab == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Material(
-        color: active ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () => setState(() => _currentTab = index),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(children: [
-              Icon(icon, size: 20, color: active ? AppColors.primaryLight : AppColors.textMuted),
-              const SizedBox(width: 12),
-              Text(label, style: AppTypography.body(context).copyWith(
-                color: active ? AppColors.textPrimary : AppColors.textSecondary,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-              )),
-            ]),
+  Widget _miniStat(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(label, style: AppTypography.bodySmall(context)),
+            ],
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: AppTypography.heading1(context).copyWith(color: color),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _navItemSmall(IconData icon, String label, String route) {
-    return SizedBox(
-      height: 40,
-      child: OutlinedButton.icon(
-        onPressed: () => context.go(route),
-        icon: Icon(icon, size: 16),
-        label: Text(label, style: AppTypography.bodySmall(context)),
-        style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
-      ),
-    );
-  }
+  Widget _buildNeedsAttention(
+    BuildContext context,
+    int overdueLeads,
+    double overdueAmount,
+    int pendingQuotes,
+  ) {
+    final items = <_ActionItem>[];
 
-  // Pipeline Kanban
-  Widget _buildPipeline(List<Lead> leads) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text('Pipeline', style: AppTypography.heading1(context)),
-          const Spacer(),
-          ElevatedButton.icon(
-            onPressed: () => context.go('/lead/new'),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Lead'),
-          ),
-        ]),
-        const SizedBox(height: 20),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: StorageService.pipelineStages.map((stage) {
-                final stageLeads = leads.where((l) => l.stage == stage).toList();
-                return _buildPipelineColumn(stage, stageLeads, leads.length);
-              }).toList(),
-            ),
-          ),
-        ),
-      ]),
-    );
-  }
+    if (overdueAmount > 0) {
+      items.add(_ActionItem(
+        Icons.warning_amber_rounded,
+        AppColors.danger,
+        'Overdue Invoices',
+        '\$${_formatNumber(overdueAmount)} needs attention',
+      ));
+    }
 
-  Widget _buildPipelineColumn(String stage, List<Lead> leads, int totalLeads) {
-    final isPositive = stage == 'Won';
-    final isNegative = stage == 'Lost';
+    if (overdueLeads > 0) {
+      items.add(_ActionItem(
+        Icons.schedule_rounded,
+        AppColors.warning,
+        'Missed Follow-ups',
+        '$overdueLeads leads need follow-up',
+      ));
+    }
+
+    if (pendingQuotes > 0) {
+      items.add(_ActionItem(
+        Icons.description_outlined,
+        AppColors.info,
+        'Pending Quotes',
+        '$pendingQuotes quotes awaiting response',
+      ));
+    }
+
+    if (items.isEmpty) {
+      items.add(_ActionItem(
+        Icons.check_circle_outline,
+        AppColors.success,
+        'All Clear',
+        'No items need your attention',
+      ));
+    }
 
     return Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: isPositive ? AppColors.success.withOpacity(0.1) :
-                   isNegative ? AppColors.danger.withOpacity(0.1) :
-                   AppColors.bgCard,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            border: Border.all(color: isPositive ? AppColors.success.withOpacity(0.3) :
-                                        isNegative ? AppColors.danger.withOpacity(0.3) :
-                                        AppColors.borderLight.withOpacity(0.3)),
-          ),
-          child: Row(children: [
-            Container(
-              width: 8, height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isPositive ? AppColors.success : isNegative ? AppColors.danger : AppColors.primary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(stage, style: AppTypography.label(context).copyWith(fontWeight: FontWeight.w600)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.bgSurface,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text('${leads.length}', style: AppTypography.caption(context)),
-            ),
-          ]),
-        ),
-        // Cards
-        Container(
-          constraints: const BoxConstraints(minHeight: 100),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.5),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            border: Border(
-              left: BorderSide(color: AppColors.borderLight.withOpacity(0.3)),
-              right: BorderSide(color: AppColors.borderLight.withOpacity(0.3)),
-              bottom: BorderSide(color: AppColors.borderLight.withOpacity(0.3)),
-            ),
-          ),
-          child: Column(children: [
-            if (leads.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text('No leads', style: AppTypography.bodySmall(context)),
-              ),
-            ...leads.map((lead) => _buildLeadCard(lead)),
-          ]),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildLeadCard(Lead lead) {
-    return GestureDetector(
-      onTap: () => context.go('/lead/${lead.id}'),
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.2)),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(lead.name, style: AppTypography.label(context).copyWith(
-            color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13,
-          )),
-          if (lead.company.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(lead.company, style: AppTypography.bodySmall(context)),
-          ],
-          const SizedBox(height: 6),
-          Row(children: [
-            Icon(Icons.calendar_today, size: 10, color: AppColors.textMuted),
-            const SizedBox(width: 4),
-            Text(DateFormat('dd MMM').format(lead.createdAt), style: AppTypography.caption(context)),
-            const Spacer(),
-            if (lead.projectProfile != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text('Discovered', style: AppTypography.caption(context).copyWith(
-                  color: AppColors.success, fontSize: 9,
-                )),
-              ),
-          ]),
-        ]),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
       ),
-    );
-  }
-
-  // All Leads List
-  Widget _buildLeadsList(List<Lead> leads) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text('All Leads', style: AppTypography.heading1(context)),
-          const Spacer(),
-          ElevatedButton.icon(
-            onPressed: () => context.go('/lead/new'),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Lead'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.notifications_outlined,
+                  size: 18, color: AppColors.warning),
+              const SizedBox(width: 8),
+              Text('Needs Attention', style: AppTypography.heading2(context)),
+            ],
           ),
-        ]),
-        const SizedBox(height: 16),
-        Expanded(
-          child: leads.isEmpty
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: AppColors.textMuted.withOpacity(0.3)),
-                  const SizedBox(height: 12),
-                  Text('No leads yet', style: AppTypography.heading2(context).copyWith(color: AppColors.textMuted)),
-                  const SizedBox(height: 4),
-                  Text('Click "New Lead" to get started', style: AppTypography.body(context)),
-                ]))
-              : ListView.builder(
-                  itemCount: leads.length,
-                  itemBuilder: (context, i) {
-                    final lead = leads[i];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(0.2),
-                          child: Text(lead.name[0].toUpperCase(), style: const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.w600)),
-                        ),
-                        title: Text(lead.name, style: AppTypography.body(context).copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                        subtitle: Text('${lead.stage} · ${lead.company}', style: AppTypography.bodySmall(context)),
-                        trailing: _stageChip(lead.stage),
-                        onTap: () => context.go('/lead/${lead.id}'),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ]),
-    );
-  }
-
-  // Analytics
-  Widget _buildAnalytics(List<Lead> leads) {
-    final won = leads.where((l) => l.stage == 'Won').length;
-    final lost = leads.where((l) => l.stage == 'Lost').length;
-    final active = leads.where((l) => l.stage != 'Won' && l.stage != 'Lost').length;
-    final total = leads.length;
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Analytics', style: AppTypography.heading1(context)),
-        const SizedBox(height: 24),
-        Row(children: [
-          _statCard('Total Leads', '$total', AppColors.info),
-          const SizedBox(width: 16),
-          _statCard('Active', '$active', AppColors.primary),
-          const SizedBox(width: 16),
-          _statCard('Won', '$won', AppColors.success),
-          const SizedBox(width: 16),
-          _statCard('Lost', '$lost', AppColors.danger),
-        ]),
-        const SizedBox(height: 32),
-        Text('Pipeline Breakdown', style: AppTypography.heading2(context)),
-        const SizedBox(height: 12),
-        ...StorageService.pipelineStages.map((stage) {
-          final count = leads.where((l) => l.stage == stage).length;
-          final pct = total > 0 ? count / total : 0.0;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [
-              SizedBox(width: 120, child: Text(stage, style: AppTypography.body(context))),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 8,
-                    backgroundColor: AppColors.bgSurface,
-                    valueColor: AlwaysStoppedAnimation(
-                      stage == 'Won' ? AppColors.success :
-                      stage == 'Lost' ? AppColors.danger :
-                      AppColors.primary,
+          const SizedBox(height: 16),
+          ...items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: item.color.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: item.color.withOpacity(0.15),
                     ),
                   ),
+                  child: Row(
+                    children: [
+                      Icon(item.icon, size: 20, color: item.color),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              style: AppTypography.body(context).copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.subtitle,
+                              style: AppTypography.bodySmall(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          size: 18, color: item.color),
+                    ],
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingEvents(
+      BuildContext context, List<dynamic> upcomingEvents) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.calendar_today_rounded,
+                  size: 18, color: AppColors.info),
+              const SizedBox(width: 8),
+              Text('Upcoming', style: AppTypography.heading2(context)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (upcomingEvents.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'No upcoming events',
+                  style: AppTypography.bodySmall(context),
                 ),
               ),
-              const SizedBox(width: 12),
-              SizedBox(width: 40, child: Text('$count', style: AppTypography.body(context).copyWith(fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
-            ]),
-          );
-        }),
-      ]),
-    );
-  }
-
-  Widget _statCard(String label, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(value, style: AppTypography.displayLarge(context).copyWith(color: color)),
-          const SizedBox(height: 4),
-          Text(label, style: AppTypography.bodySmall(context)),
-        ]),
+            )
+          else
+            ...upcomingEvents.take(4).map((event) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.title,
+                              style: AppTypography.body(context).copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              DateFormat('MMM d, h:mm a')
+                                  .format(event.startTime),
+                              style: AppTypography.caption(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+        ],
       ),
     );
   }
 
-  Widget _stageChip(String stage) {
-    final isWon = stage == 'Won';
-    final isLost = stage == 'Lost';
+  Widget _buildRecentLeads(BuildContext context, List<Lead> recentLeads) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isWon ? AppColors.success.withOpacity(0.15) :
-               isLost ? AppColors.danger.withOpacity(0.15) :
-               AppColors.primary.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
       ),
-      child: Text(stage, style: AppTypography.caption(context).copyWith(
-        color: isWon ? AppColors.success : isLost ? AppColors.danger : AppColors.primaryLight,
-      )),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_outline_rounded,
+                  size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text('Recent Leads', style: AppTypography.heading2(context)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (recentLeads.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'No leads yet',
+                  style: AppTypography.bodySmall(context),
+                ),
+              ),
+            )
+          else
+            ...recentLeads.map((lead) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor:
+                            AppColors.primary.withOpacity(0.15),
+                        child: Text(
+                          lead.name[0].toUpperCase(),
+                          style: AppTypography.label(context).copyWith(
+                            color: AppColors.primaryLight,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              lead.name,
+                              style: AppTypography.body(context).copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              lead.company.isNotEmpty
+                                  ? lead.company
+                                  : lead.source,
+                              style: AppTypography.caption(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      StatusChip(
+                        label: lead.stageLabel,
+                        color: AppTheme.stageColor(lead.stageLabel),
+                        isSmall: true,
+                      ),
+                    ],
+                  ),
+                )),
+        ],
+      ),
     );
   }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Morning';
+    if (hour < 17) return 'Afternoon';
+    return 'Evening';
+  }
+
+  String _formatNumber(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(1)}K';
+    return value.toStringAsFixed(0);
+  }
+}
+
+class _ActionItem {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  const _ActionItem(this.icon, this.color, this.title, this.subtitle);
 }

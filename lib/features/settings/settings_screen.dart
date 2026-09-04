@@ -1,127 +1,336 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
+import '../../models/app_settings.dart';
 import '../../providers.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(businessProfileProvider);
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  late TextEditingController _businessNameCtrl;
+  late TextEditingController _ownerNameCtrl;
+  late TextEditingController _emailCtrl;
+  late TextEditingController _phoneCtrl;
+  late TextEditingController _websiteCtrl;
+  late TextEditingController _addressCtrl;
+  late TextEditingController _taxRateCtrl;
+  String _currency = 'USD';
+  String _paymentTerms = 'Net 30';
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = ref.read(settingsProvider);
+    _businessNameCtrl = TextEditingController(text: settings.businessName);
+    _ownerNameCtrl = TextEditingController(text: settings.ownerName);
+    _emailCtrl = TextEditingController(text: settings.email);
+    _phoneCtrl = TextEditingController(text: settings.phone);
+    _websiteCtrl = TextEditingController(text: settings.website);
+    _addressCtrl = TextEditingController(text: settings.address);
+    _taxRateCtrl = TextEditingController(text: settings.defaultTaxRate.toString());
+    _currency = settings.currency;
+    _paymentTerms = settings.defaultPaymentTerms;
+  }
+
+  @override
+  void dispose() {
+    _businessNameCtrl.dispose();
+    _ownerNameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _websiteCtrl.dispose();
+    _addressCtrl.dispose();
+    _taxRateCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/dashboard')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => context.go('/'),
+        ),
         title: Text('Settings', style: AppTypography.heading2(context)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _section(context, 'Business Profile'),
-            const SizedBox(height: 12),
-            if (profile != null) ...[
-              _profileField(context, 'Business Name', profile.businessName),
-              _profileField(context, 'Owner', profile.ownerName),
-              _profileField(context, 'Structure', profile.businessStructure),
-              _profileField(context, 'PAN', profile.pan),
-              _profileField(context, 'GSTIN', profile.gstin.isNotEmpty ? profile.gstin : 'Not registered'),
-              _profileField(context, 'Udyam/MSME', profile.udyamNumber.isNotEmpty ? profile.udyamNumber : 'Not registered'),
-              _profileField(context, 'Home State', profile.homeState),
-              _profileField(context, 'Email', profile.email),
-              _profileField(context, 'Phone', profile.phone),
-            ] else
-              Text('No profile set up', style: AppTypography.body(context)),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 44,
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/onboarding'),
-                icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Edit Business Profile'),
-              ),
-            ),
-            const SizedBox(height: 32),
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Appearance (at top for visibility)
+              _section('Appearance'),
+              const SizedBox(height: 12),
 
-            _section(context, 'Rate Card'),
-            const SizedBox(height: 12),
-            Text('Configure your default pricing for project tiers and compliance add-ons.',
-                style: AppTypography.body(context)),
-            const SizedBox(height: 12),
-            _rateCardItem(context, 'Basic (Static/Brochure)', '\u{20B9}15,000'),
-            _rateCardItem(context, 'Standard (Dynamic/CMS)', '\u{20B9}45,000'),
-            _rateCardItem(context, 'Advanced (Custom App)', '\u{20B9}1,20,000'),
-            _rateCardItem(context, 'Enterprise (Multi-Module)', '\u{20B9}3,50,000'),
-            _rateCardItem(context, 'DPDPA Compliance Add-on', '\u{20B9}8,000'),
-            _rateCardItem(context, 'E-Commerce Module', '\u{20B9}12,000'),
-            _rateCardItem(context, 'CERT-In Setup', '\u{20B9}10,000'),
-            _rateCardItem(context, 'IP Assignment Premium', '40% of base'),
-            const SizedBox(height: 32),
-
-            _section(context, 'About'),
-            const SizedBox(height: 12),
-            _aboutRow(context, 'Version', '1.0.0 (MVP)'),
-            _aboutRow(context, 'Platform', 'Flutter — Windows + Mobile + Web'),
-            _aboutRow(context, 'Storage', 'Local (Hive) — data stays on your device'),
-            _aboutRow(context, 'Compliance Engine', 'Rules v1 — DPDPA 2023, GST, CERT-In'),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity, height: 44,
-              child: OutlinedButton.icon(
-                onPressed: () => context.go('/rules-engine'),
-                icon: const Icon(Icons.rule, size: 16),
-                label: const Text('View Rules Engine — All 17 Rules'),
+              // Dark Mode Toggle
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryTint,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        settings.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Dark Mode', style: AppTypography.body(context).copyWith(
+                            color: AppColors.textPrimary, fontWeight: FontWeight.w600,
+                          )),
+                          Text(settings.isDarkMode ? 'Currently using dark theme' : 'Currently using light theme',
+                              style: AppTypography.bodySmall(context)),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: settings.isDarkMode,
+                      onChanged: (v) {
+                        ref.read(settingsProvider.notifier).save(
+                              settings.copyWith(isDarkMode: v),
+                            );
+                      },
+                      activeColor: AppColors.primary,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text('Disclaimer', style: AppTypography.label(context).copyWith(color: AppColors.warning)),
-            const SizedBox(height: 4),
-            Text('LeadToClose provides compliance checklists and draft documents based on stated project parameters. '
-                'It is NOT a substitute for review by a qualified lawyer. Generated contracts should be reviewed '
-                'before use, especially for enterprise-tier or first-of-kind engagements.',
-                style: AppTypography.bodySmall(context)),
-            const SizedBox(height: 40),
-          ]),
+
+              const SizedBox(height: 24),
+
+              // Branding
+              _section('Branding'),
+              const SizedBox(height: 12),
+              _field('Business Name', _businessNameCtrl, Icons.business_outlined),
+              const SizedBox(height: 12),
+              _field('Your Name', _ownerNameCtrl, Icons.person_outline),
+              const SizedBox(height: 12),
+              _field('Email', _emailCtrl, Icons.email_outlined),
+              const SizedBox(height: 12),
+              _field('Phone', _phoneCtrl, Icons.phone_outlined),
+              const SizedBox(height: 12),
+              _field('Website', _websiteCtrl, Icons.language),
+              const SizedBox(height: 12),
+              _field('Address', _addressCtrl, Icons.location_on_outlined, maxLines: 2),
+              const SizedBox(height: 32),
+
+              // Preferences
+              _section('Preferences'),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: _currencyDropdown()),
+                  const SizedBox(width: 16),
+                  Expanded(child: _paymentTermsDropdown()),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _field('Tax Rate (%)', _taxRateCtrl, Icons.percent, isNumber: true),
+              const SizedBox(height: 32),
+
+              // Integrations
+              _section('Integrations'),
+              const SizedBox(height: 12),
+              _integrationCard('Stripe', 'Accept payments via Stripe', Icons.payment, AppColors.primary, settings.integrations.contains('stripe')),
+              _integrationCard('PayPal', 'Accept payments via PayPal', Icons.paypal, AppColors.info, settings.integrations.contains('paypal')),
+              _integrationCard('Google Calendar', 'Sync events with Google Calendar', Icons.calendar_today, AppColors.success, settings.integrations.contains('google_calendar')),
+              _integrationCard('Slack', 'Get notifications in Slack', Icons.notifications_active, AppColors.warning, settings.integrations.contains('slack')),
+              _integrationCard('GitHub', 'Link repos to projects', Icons.code, AppColors.textSecondary, settings.integrations.contains('github')),
+              const SizedBox(height: 32),
+
+              // About
+              _section('About'),
+              const SizedBox(height: 12),
+              _aboutRow('Version', '2.0.0 (Naro CRM)'),
+              _aboutRow('Platform', 'Flutter — Cross-platform'),
+              _aboutRow('Storage', 'Local (Hive) — data stays on your device'),
+              const SizedBox(height: 32),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: _saveSettings,
+                  icon: const Icon(Icons.save, size: 18),
+                  label: const Text('Save Settings'),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _section(BuildContext ctx, String title) {
-    return Text(title, style: AppTypography.heading2(ctx).copyWith(color: AppColors.primaryLight));
-  }
-
-  Widget _profileField(BuildContext ctx, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 130, child: Text(label, style: AppTypography.bodySmall(ctx))),
-        Expanded(child: Text(value, style: AppTypography.body(ctx).copyWith(color: AppColors.textPrimary))),
-      ]),
+  Widget _section(String title) {
+    return Text(
+      title,
+      style: AppTypography.heading2(context).copyWith(color: AppColors.primaryLight),
     );
   }
 
-  Widget _rateCardItem(BuildContext ctx, String label, String price) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(children: [
-        Expanded(child: Text(label, style: AppTypography.body(ctx))),
-        Text(price, style: AppTypography.label(ctx).copyWith(color: AppColors.success)),
-      ]),
+  Widget _field(String label, TextEditingController ctrl, IconData icon, {int maxLines = 1, bool isNumber = false}) {
+    return TextField(
+      controller: ctrl,
+      maxLines: maxLines,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      style: AppTypography.body(context).copyWith(color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+      ),
     );
   }
 
-  Widget _aboutRow(BuildContext ctx, String label, String value) {
+  Widget _currencyDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _currency,
+      decoration: const InputDecoration(
+        labelText: 'Currency',
+        prefixIcon: Icon(Icons.monetization_on_outlined, size: 20),
+      ),
+      dropdownColor: AppColors.bgCard,
+      items: const [
+        DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
+        DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
+        DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
+        DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+        DropdownMenuItem(value: 'CAD', child: Text('CAD (\$)')),
+        DropdownMenuItem(value: 'AUD', child: Text('AUD (\$)')),
+      ],
+      onChanged: (v) => setState(() => _currency = v!),
+    );
+  }
+
+  Widget _paymentTermsDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _paymentTerms,
+      decoration: const InputDecoration(
+        labelText: 'Payment Terms',
+        prefixIcon: Icon(Icons.schedule, size: 20),
+      ),
+      dropdownColor: AppColors.bgCard,
+      items: const [
+        DropdownMenuItem(value: 'Due on Receipt', child: Text('Due on Receipt')),
+        DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
+        DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
+        DropdownMenuItem(value: 'Net 45', child: Text('Net 45')),
+        DropdownMenuItem(value: 'Net 60', child: Text('Net 60')),
+      ],
+      onChanged: (v) => setState(() => _paymentTerms = v!),
+    );
+  }
+
+  Widget _integrationCard(String name, String desc, IconData icon, Color color, bool enabled) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: AppTypography.body(context).copyWith(
+                  color: AppColors.textPrimary, fontWeight: FontWeight.w600,
+                )),
+                Text(desc, style: AppTypography.bodySmall(context)),
+              ],
+            ),
+          ),
+          Switch(
+            value: enabled,
+            onChanged: (v) {
+              final settings = ref.read(settingsProvider);
+              final integrations = List<String>.from(settings.integrations);
+              if (v) {
+                integrations.add(name.toLowerCase().replaceAll(' ', '_'));
+              } else {
+                integrations.remove(name.toLowerCase().replaceAll(' ', '_'));
+              }
+              ref.read(settingsProvider.notifier).save(
+                    settings.copyWith(integrations: integrations),
+                  );
+            },
+            activeColor: AppColors.success,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _aboutRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 130, child: Text(label, style: AppTypography.bodySmall(ctx))),
-        Expanded(child: Text(value, style: AppTypography.body(ctx))),
-      ]),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 130, child: Text(label, style: AppTypography.bodySmall(context))),
+          Expanded(child: Text(value, style: AppTypography.body(context))),
+        ],
+      ),
+    );
+  }
+
+  void _saveSettings() {
+    final current = ref.read(settingsProvider);
+    ref.read(settingsProvider.notifier).save(
+          current.copyWith(
+            businessName: _businessNameCtrl.text.trim(),
+            ownerName: _ownerNameCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
+            phone: _phoneCtrl.text.trim(),
+            website: _websiteCtrl.text.trim(),
+            address: _addressCtrl.text.trim(),
+            currency: _currency,
+            defaultPaymentTerms: _paymentTerms,
+            defaultTaxRate: double.tryParse(_taxRateCtrl.text) ?? 0,
+          ),
+        );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Settings saved')),
     );
   }
 }
