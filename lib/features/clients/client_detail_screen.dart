@@ -7,6 +7,7 @@ import '../../models/client.dart';
 import '../../models/project.dart';
 import '../../models/invoice.dart';
 import '../../models/communication.dart';
+import '../../models/quote.dart';
 import '../../providers.dart';
 import '../../widgets/shared_widgets.dart';
 
@@ -165,7 +166,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   width: double.infinity,
                   height: 40,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => _showEditClientDialog(context, client),
                     icon: const Icon(Icons.edit_outlined, size: 16),
                     label: const Text('Edit Client'),
                   ),
@@ -239,11 +240,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       case 0:
         return _buildOverviewTab(client, projects, invoices);
       case 1:
-        return _buildProjectsTab(projects);
+        return _buildProjectsTab(projects, client);
       case 2:
-        return _buildInvoicesTab(invoices);
+        return _buildInvoicesTab(invoices, client);
       case 3:
-        return _buildProposalsTab(quotes);
+        return _buildProposalsTab(quotes, client);
       case 4:
         return _buildMessagesTab(comms);
       default:
@@ -312,7 +313,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _buildProjectsTab(List<Project> projects) {
+  Widget _buildProjectsTab(List<Project> projects, Client client) {
     if (projects.isEmpty) {
       return Center(
         child: EmptyState(
@@ -320,7 +321,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           title: 'No projects yet',
           subtitle: 'Create a project for this client',
           actionLabel: 'New Project',
-          onAction: () {},
+          onAction: () => _showCreateProjectDialog(context, client.id),
         ),
       );
     }
@@ -372,7 +373,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _buildInvoicesTab(List<Invoice> invoices) {
+  Widget _buildInvoicesTab(List<Invoice> invoices, Client client) {
     if (invoices.isEmpty) {
       return Center(
         child: EmptyState(
@@ -380,7 +381,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           title: 'No invoices yet',
           subtitle: 'Create an invoice for this client',
           actionLabel: 'New Invoice',
-          onAction: () {},
+          onAction: () => _showCreateInvoiceDialog(context, client.id),
         ),
       );
     }
@@ -415,7 +416,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _buildProposalsTab(List<dynamic> quotes) {
+  Widget _buildProposalsTab(List<dynamic> quotes, Client client) {
     if (quotes.isEmpty) {
       return Center(
         child: EmptyState(
@@ -423,7 +424,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           title: 'No proposals yet',
           subtitle: 'Send a proposal to this client',
           actionLabel: 'New Proposal',
-          onAction: () {},
+          onAction: () => _showCreateProposalDialog(context, client.id),
         ),
       );
     }
@@ -599,4 +600,422 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       default: return AppColors.textMuted;
     }
   }
+
+  void _showEditClientDialog(BuildContext context, Client client) {
+    final companyCtrl = TextEditingController(text: client.companyName);
+    final nameCtrl = TextEditingController(text: client.primaryContact?.name ?? '');
+    final emailCtrl = TextEditingController(text: client.primaryContact?.email ?? '');
+    final phoneCtrl = TextEditingController(text: client.primaryContact?.phone ?? '');
+    String industry = client.industry.isNotEmpty ? client.industry : 'Technology';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Edit Client', style: AppTypography.heading2(context)),
+        content: SizedBox(
+          width: 400,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: companyCtrl,
+                  decoration: const InputDecoration(labelText: 'Company Name *', prefixIcon: Icon(Icons.business_outlined, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Contact Name', prefixIcon: Icon(Icons.person_outline, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: phoneCtrl,
+                  decoration: const InputDecoration(labelText: 'Phone', prefixIcon: Icon(Icons.phone_outlined, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: industry,
+                  decoration: const InputDecoration(labelText: 'Industry', prefixIcon: Icon(Icons.category_outlined, size: 20)),
+                  dropdownColor: AppColors.bgCard,
+                  items: const [
+                    DropdownMenuItem(value: 'Technology', child: Text('Technology')),
+                    DropdownMenuItem(value: 'E-commerce', child: Text('E-commerce')),
+                    DropdownMenuItem(value: 'Healthcare', child: Text('Healthcare')),
+                    DropdownMenuItem(value: 'Finance', child: Text('Finance')),
+                    DropdownMenuItem(value: 'Education', child: Text('Education')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (v) => industry = v!,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (companyCtrl.text.trim().isEmpty) return;
+              final updated = client.copyWith(
+                companyName: companyCtrl.text.trim(),
+                contacts: [
+                  Contact(
+                    id: client.primaryContact?.id ?? '1',
+                    name: nameCtrl.text.trim(),
+                    email: emailCtrl.text.trim(),
+                    phone: phoneCtrl.text.trim(),
+                    isPrimary: true,
+                  ),
+                ],
+                industry: industry,
+              );
+              ref.read(clientsProvider.notifier).updateClient(updated);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateProjectDialog(BuildContext context, String clientId) {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    String status = 'active';
+    String priority = 'medium';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('New Project', style: AppTypography.heading2(context)),
+        content: SizedBox(
+          width: 400,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Project Name *', prefixIcon: Icon(Icons.folder_outlined, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(labelText: 'Description', prefixIcon: Icon(Icons.description_outlined, size: 20)),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: priority,
+                  decoration: const InputDecoration(labelText: 'Priority'),
+                  dropdownColor: AppColors.bgCard,
+                  items: const [
+                    DropdownMenuItem(value: 'low', child: Text('Low')),
+                    DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                    DropdownMenuItem(value: 'high', child: Text('High')),
+                    DropdownMenuItem(value: 'urgent', child: Text('Urgent')),
+                  ],
+                  onChanged: (v) => priority = v!,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (nameCtrl.text.trim().isEmpty) return;
+              final project = Project(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameCtrl.text.trim(),
+                description: descCtrl.text.trim(),
+                clientId: clientId,
+                status: ProjectStatus.active,
+                priority: priority,
+              );
+              ref.read(projectsProvider.notifier).addProject(project);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Create Project'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateInvoiceDialog(BuildContext context, String clientId) {
+    String currency = 'USD';
+    String paymentTerms = 'Net 30';
+    final items = <_InvoiceItem>[_InvoiceItem()];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('New Invoice', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 480,
+            height: 350,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: currency,
+                          decoration: const InputDecoration(labelText: 'Currency'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'USD', child: Text('USD')),
+                            DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                            DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                          ],
+                          onChanged: (v) => setDialogState(() => currency = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: paymentTerms,
+                          decoration: const InputDecoration(labelText: 'Payment Terms'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
+                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
+                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60')),
+                          ],
+                          onChanged: (v) => setDialogState(() => paymentTerms = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text('Line Items', style: AppTypography.heading2(context)),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() => items.add(_InvoiceItem())),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add'),
+                      ),
+                    ],
+                  ),
+                  ...List.generate(items.length, (i) {
+                    final item = items[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: item.descCtrl,
+                              decoration: InputDecoration(
+                                hintText: 'Description',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.qtyCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Qty',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.priceCtrl,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              decoration: InputDecoration(
+                                hintText: 'Price',
+                                prefixText: '\$',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          if (items.length > 1)
+                            IconButton(
+                              onPressed: () => setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => InvoiceLineItem(
+                  description: i.descCtrl.text,
+                  quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
+                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                )).toList();
+                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final invoice = Invoice(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                  clientId: clientId,
+                  status: 'draft',
+                  lineItems: lineItems,
+                  subtotal: total,
+                  total: total,
+                  currency: currency,
+                  paymentTerms: paymentTerms,
+                  dueDate: DateTime.now().add(const Duration(days: 30)),
+                );
+                ref.read(invoicesProvider.notifier).addInvoice(invoice);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Create Invoice'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCreateProposalDialog(BuildContext context, String clientId) {
+    final titleCtrl = TextEditingController();
+    final items = <_ProposalItem>[_ProposalItem()];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('New Proposal', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 480,
+            height: 350,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(labelText: 'Proposal Title *', prefixIcon: Icon(Icons.title, size: 20)),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text('Line Items', style: AppTypography.heading2(context)),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() => items.add(_ProposalItem())),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add'),
+                      ),
+                    ],
+                  ),
+                  ...List.generate(items.length, (i) {
+                    final item = items[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: item.descCtrl,
+                              decoration: InputDecoration(
+                                hintText: 'Description',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.priceCtrl,
+                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              decoration: InputDecoration(
+                                hintText: 'Price',
+                                prefixText: '\$',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          if (items.length > 1)
+                            IconButton(
+                              onPressed: () => setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                if (titleCtrl.text.trim().isEmpty) return;
+                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => QuoteLineItem(
+                  description: i.descCtrl.text,
+                  quantity: 1,
+                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                )).toList();
+                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final quote = Quote(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  number: 'PROP-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                  title: titleCtrl.text.trim(),
+                  clientId: clientId,
+                  status: 'draft',
+                  lineItems: lineItems,
+                  subtotal: total,
+                  total: total,
+                );
+                ref.read(quotesProvider.notifier).addQuote(quote);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Create Proposal'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InvoiceItem {
+  final descCtrl = TextEditingController();
+  final qtyCtrl = TextEditingController(text: '1');
+  final priceCtrl = TextEditingController();
+}
+
+class _ProposalItem {
+  final descCtrl = TextEditingController();
+  final priceCtrl = TextEditingController();
 }
