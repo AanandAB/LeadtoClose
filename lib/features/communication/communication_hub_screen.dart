@@ -10,10 +10,12 @@ class CommunicationHubScreen extends ConsumerStatefulWidget {
   const CommunicationHubScreen({super.key});
 
   @override
-  ConsumerState<CommunicationHubScreen> createState() => _CommunicationHubScreenState();
+  ConsumerState<CommunicationHubScreen> createState() =>
+      _CommunicationHubScreenState();
 }
 
-class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen> {
+class _CommunicationHubScreenState
+    extends ConsumerState<CommunicationHubScreen> {
   String _typeFilter = 'all';
 
   @override
@@ -21,7 +23,9 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
     final communications = ref.watch(communicationsProvider);
     final filtered = _typeFilter == 'all'
         ? communications
-        : communications.where((c) => c.type.name == _typeFilter).toList();
+        : communications
+            .where((c) => c.type.name == _typeFilter)
+            .toList();
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -30,17 +34,17 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
         children: [
           Row(
             children: [
-              Text('Messages', style: AppTypography.displayMedium(context)),
+              Text('Messages',
+                  style: AppTypography.displayMedium(context)),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showComposeDialog(context),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('New Message'),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
           Row(
             children: [
               _filterBtn('All', 'all'),
@@ -51,7 +55,6 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
             ],
           ),
           const SizedBox(height: 16),
-
           Expanded(
             child: filtered.isEmpty
                 ? EmptyState(
@@ -59,11 +62,12 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
                     title: 'No messages yet',
                     subtitle: 'Start a conversation with your client',
                     actionLabel: 'New Message',
-                    onAction: () {},
+                    onAction: () => _showComposeDialog(context),
                   )
                 : ListView.builder(
                     itemCount: filtered.length,
-                    itemBuilder: (context, i) => _buildMessageCard(filtered[i]),
+                    itemBuilder: (context, i) =>
+                        _buildMessageCard(filtered[i]),
                   ),
           ),
         ],
@@ -78,15 +82,24 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
       child: GestureDetector(
         onTap: () => setState(() => _typeFilter = value),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+            color: selected
+                ? AppColors.primary.withOpacity(0.15)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: selected ? AppColors.primary : AppColors.borderLight),
+            border: Border.all(
+                color:
+                    selected ? AppColors.primary : AppColors.borderLight),
           ),
-          child: Text(label, style: AppTypography.label(context).copyWith(
-            color: selected ? AppColors.primaryLight : AppColors.textMuted, fontSize: 12,
-          )),
+          child: Text(label,
+              style: AppTypography.label(context).copyWith(
+                color: selected
+                    ? AppColors.primaryLight
+                    : AppColors.textMuted,
+                fontSize: 12,
+              )),
         ),
       ),
     );
@@ -125,13 +138,16 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: comm.isInternal ? AppColors.warning.withOpacity(0.2) : AppColors.borderLight,
+          color: comm.isInternal
+              ? AppColors.warning.withOpacity(0.2)
+              : AppColors.borderLight,
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
@@ -146,18 +162,23 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
                 Row(
                   children: [
                     Text(comm.type.name.toUpperCase(),
-                        style: AppTypography.caption(context).copyWith(color: color, fontWeight: FontWeight.w700)),
+                        style: AppTypography.caption(context).copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w700)),
                     if (comm.isInternal) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.warning.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text('INTERNAL', style: AppTypography.caption(context).copyWith(
-                          color: AppColors.warning, fontSize: 8,
-                        )),
+                        child: Text('INTERNAL',
+                            style: AppTypography.caption(context).copyWith(
+                              color: AppColors.warning,
+                              fontSize: 8,
+                            )),
                       ),
                     ],
                   ],
@@ -166,18 +187,180 @@ class _CommunicationHubScreenState extends ConsumerState<CommunicationHubScreen>
                 Text(
                   comm.subject.isNotEmpty ? comm.subject : comm.body,
                   style: AppTypography.body(context).copyWith(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (comm.body.isNotEmpty && comm.subject.isNotEmpty)
-                  Text(comm.body, style: AppTypography.bodySmall(context), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(comm.body,
+                      style: AppTypography.bodySmall(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
-          Text(DateFormat('MMM d').format(comm.createdAt), style: AppTypography.caption(context)),
+          Text(DateFormat('MMM d').format(comm.createdAt),
+              style: AppTypography.caption(context)),
         ],
+      ),
+    );
+  }
+
+  void _showComposeDialog(BuildContext context) {
+    String messageType = 'email';
+    String? selectedClientId;
+    final subjectCtrl = TextEditingController();
+    final bodyCtrl = TextEditingController();
+    bool isInternal = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title:
+              Text('New Message', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 480,
+            height: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Message type
+                  Row(
+                    children: [
+                      _typeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
+                      const SizedBox(width: 8),
+                      _typeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
+                      const SizedBox(width: 8),
+                      _typeChip('Meeting', 'meeting', messageType, (v) => setDialogState(() => messageType = v)),
+                      const SizedBox(width: 8),
+                      _typeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Client
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final clients = ref.watch(clientsProvider);
+                      return DropdownButtonFormField<String>(
+                        value: selectedClientId,
+                        decoration: const InputDecoration(
+                          labelText: 'Client',
+                          prefixIcon: Icon(Icons.business_outlined, size: 20),
+                        ),
+                        dropdownColor: AppColors.bgCard,
+                        items: clients
+                            .map((c) => DropdownMenuItem(
+                                  value: c.id,
+                                  child: Text(c.companyName),
+                                ))
+                            .toList(),
+                        onChanged: (v) =>
+                            setDialogState(() => selectedClientId = v),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Subject
+                  TextField(
+                    controller: subjectCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Subject',
+                      prefixIcon: Icon(Icons.subject, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Body
+                  TextField(
+                    controller: bodyCtrl,
+                    maxLines: 6,
+                    decoration: const InputDecoration(
+                      labelText: 'Message',
+                      hintText: 'Type your message...',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Internal toggle
+                  Row(
+                    children: [
+                      Switch(
+                        value: isInternal,
+                        onChanged: (v) =>
+                            setDialogState(() => isInternal = v),
+                        activeColor: AppColors.warning,
+                      ),
+                      const SizedBox(width: 8),
+                      Text('Internal note',
+                          style: AppTypography.body(context)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                final comm = Communication(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  clientId: selectedClientId ?? '',
+                  type: CommunicationType.values.firstWhere(
+                    (e) => e.name == messageType,
+                    orElse: () => CommunicationType.email,
+                  ),
+                  subject: subjectCtrl.text.trim(),
+                  body: bodyCtrl.text.trim(),
+                  isInternal: isInternal,
+                );
+
+                ref
+                    .read(communicationsProvider.notifier)
+                    .addCommunication(comm);
+                Navigator.pop(ctx);
+              },
+              icon: const Icon(Icons.send, size: 16),
+              label: const Text('Send'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _typeChip(
+      String label, String value, String current, Function(String) onTap) {
+    final selected = current == value;
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: selected ? AppColors.primary : AppColors.borderLight),
+        ),
+        child: Text(label,
+            style: AppTypography.label(context).copyWith(
+              color: selected
+                  ? AppColors.primaryLight
+                  : AppColors.textMuted,
+              fontSize: 11,
+            )),
       ),
     );
   }

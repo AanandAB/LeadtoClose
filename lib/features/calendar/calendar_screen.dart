@@ -37,7 +37,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               Text('Calendar', style: AppTypography.displayMedium(context)),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showCreateEventDialog(context),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('New Event'),
               ),
@@ -217,6 +217,113 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       rows.add(Row(children: cells));
     }
     return rows;
+  }
+
+  void _showCreateEventDialog(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    String eventType = 'meeting';
+    DateTime startDate = _selectedDate;
+    TimeOfDay startTime = TimeOfDay.now();
+    TimeOfDay endTime = TimeOfDay(hour: TimeOfDay.now().hour + 1, minute: 0);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('New Event', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: eventType,
+                    decoration: const InputDecoration(labelText: 'Event Type'),
+                    dropdownColor: AppColors.bgCard,
+                    items: const [
+                      DropdownMenuItem(value: 'meeting', child: Text('Meeting')),
+                      DropdownMenuItem(value: 'deadline', child: Text('Deadline')),
+                      DropdownMenuItem(value: 'call', child: Text('Call')),
+                      DropdownMenuItem(value: 'other', child: Text('Other')),
+                    ],
+                    onChanged: (v) => setDialogState(() => eventType = v!),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(labelText: 'Title *'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text('Start', style: AppTypography.bodySmall(context)),
+                          subtitle: Text(
+                            '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
+                            style: AppTypography.heading2(context),
+                          ),
+                          onTap: () async {
+                            final t = await showTimePicker(context: context, initialTime: startTime);
+                            if (t != null) setDialogState(() => startTime = t);
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text('End', style: AppTypography.bodySmall(context)),
+                          subtitle: Text(
+                            '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                            style: AppTypography.heading2(context),
+                          ),
+                          onTap: () async {
+                            final t = await showTimePicker(context: context, initialTime: endTime);
+                            if (t != null) setDialogState(() => endTime = t);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleCtrl.text.trim().isEmpty) return;
+                final start = DateTime(startDate.year, startDate.month, startDate.day, startTime.hour, startTime.minute);
+                final end = DateTime(startDate.year, startDate.month, startDate.day, endTime.hour, endTime.minute);
+                final event = CalendarEvent(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  title: titleCtrl.text.trim(),
+                  description: descCtrl.text.trim(),
+                  type: EventType.values.firstWhere((e) => e.name == eventType, orElse: () => EventType.meeting),
+                  startTime: start,
+                  endTime: end,
+                );
+                ref.read(eventsProvider.notifier).addEvent(event);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Create Event'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildEventCard(CalendarEvent event) {

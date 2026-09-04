@@ -23,9 +23,15 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         ? invoices
         : invoices.where((i) => i.status == _statusFilter).toList();
 
-    final totalRevenue = invoices.where((i) => i.status == 'paid').fold(0.0, (s, i) => s + i.total);
-    final outstanding = invoices.where((i) => i.status != 'paid' && i.status != 'cancelled').fold(0.0, (s, i) => s + i.balanceDue);
-    final overdue = invoices.where((i) => i.isOverdue).fold(0.0, (s, i) => s + i.balanceDue);
+    final totalRevenue = invoices
+        .where((i) => i.status == 'paid')
+        .fold(0.0, (s, i) => s + i.total);
+    final outstanding = invoices
+        .where((i) => i.status != 'paid' && i.status != 'cancelled')
+        .fold(0.0, (s, i) => s + i.balanceDue);
+    final overdue = invoices
+        .where((i) => i.isOverdue)
+        .fold(0.0, (s, i) => s + i.balanceDue);
     final paidCount = invoices.where((i) => i.status == 'paid').length;
 
     return Padding(
@@ -38,47 +44,64 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
               Text('Invoices', style: AppTypography.displayMedium(context)),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showCreateInvoiceDialog(context),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('New Invoice'),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
           Row(
             children: [
-              StatCard(label: 'Paid', value: '\$${_fmt(totalRevenue)}', color: AppColors.success, icon: Icons.check_circle_outline),
+              StatCard(
+                  label: 'Paid',
+                  value: '\$${_fmt(totalRevenue)}',
+                  color: AppColors.success,
+                  icon: Icons.check_circle_outline),
               const SizedBox(width: 16),
-              StatCard(label: 'Outstanding', value: '\$${_fmt(outstanding)}', color: AppColors.warning, icon: Icons.schedule_rounded),
+              StatCard(
+                  label: 'Outstanding',
+                  value: '\$${_fmt(outstanding)}',
+                  color: AppColors.warning,
+                  icon: Icons.schedule_rounded),
               const SizedBox(width: 16),
-              StatCard(label: 'Overdue', value: '\$${_fmt(overdue)}', color: AppColors.danger, icon: Icons.warning_amber),
+              StatCard(
+                  label: 'Overdue',
+                  value: '\$${_fmt(overdue)}',
+                  color: AppColors.danger,
+                  icon: Icons.warning_amber),
               const SizedBox(width: 16),
-              StatCard(label: 'Paid Count', value: '$paidCount', color: AppColors.info, icon: Icons.receipt_long),
+              StatCard(
+                  label: 'Paid Count',
+                  value: '$paidCount',
+                  color: AppColors.info,
+                  icon: Icons.receipt_long),
             ],
           ),
           const SizedBox(height: 24),
-
           Row(
             children: [
-              _filterBtn('All', 'all'), _filterBtn('Draft', 'draft'),
-              _filterBtn('Sent', 'sent'), _filterBtn('Paid', 'paid'),
+              _filterBtn('All', 'all'),
+              _filterBtn('Draft', 'draft'),
+              _filterBtn('Sent', 'sent'),
+              _filterBtn('Paid', 'paid'),
               _filterBtn('Overdue', 'overdue'),
             ],
           ),
           const SizedBox(height: 16),
-
           Expanded(
             child: filtered.isEmpty
                 ? EmptyState(
                     icon: Icons.receipt_long_outlined,
                     title: 'No invoices yet',
                     subtitle: 'Create your first invoice to get started',
-                    actionLabel: 'New Invoice', onAction: () {},
+                    actionLabel: 'New Invoice',
+                    onAction: () => _showCreateInvoiceDialog(context),
                   )
                 : ListView.builder(
                     itemCount: filtered.length,
-                    itemBuilder: (context, i) => _buildInvoiceCard(context, filtered[i]),
+                    itemBuilder: (context, i) =>
+                        _buildInvoiceCard(context, filtered[i]),
                   ),
           ),
         ],
@@ -95,13 +118,18 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+            color:
+                selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: selected ? AppColors.primary : AppColors.borderLight),
+            border: Border.all(
+                color: selected ? AppColors.primary : AppColors.borderLight),
           ),
-          child: Text(label, style: AppTypography.label(context).copyWith(
-            color: selected ? AppColors.primaryLight : AppColors.textMuted, fontSize: 12,
-          )),
+          child: Text(label,
+              style: AppTypography.label(context).copyWith(
+                color:
+                    selected ? AppColors.primaryLight : AppColors.textMuted,
+                fontSize: 12,
+              )),
         ),
       ),
     );
@@ -109,7 +137,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
   Widget _buildInvoiceCard(BuildContext context, Invoice invoice) {
     final statusColor = AppTheme.statusColor(invoice.status);
-    final symbol = invoice.currency == 'USD' ? '\$' : invoice.currency == 'EUR' ? '€' : '£';
+    final symbol = invoice.currency == 'USD'
+        ? '\$'
+        : invoice.currency == 'EUR'
+            ? '€'
+            : '£';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -122,7 +154,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       child: Row(
         children: [
           Container(
-            width: 44, height: 44,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
@@ -134,9 +167,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(invoice.number, style: AppTypography.body(context).copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-                )),
+                Text(invoice.number,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    )),
                 const SizedBox(height: 2),
                 Text(
                   'Due ${DateFormat('MMM d, yyyy').format(invoice.dueDate)} · ${invoice.paymentTerms}',
@@ -149,23 +184,29 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('$symbol${invoice.total.toStringAsFixed(0)}',
-                  style: AppTypography.price(context).copyWith(fontSize: 16)),
+                  style:
+                      AppTypography.price(context).copyWith(fontSize: 16)),
               const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  StatusChip(label: invoice.status, color: statusColor, isSmall: true),
+                  StatusChip(
+                      label: invoice.status,
+                      color: statusColor,
+                      isSmall: true),
                   if (invoice.isOverdue) ...[
                     const SizedBox(width: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.danger.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text('${invoice.daysOverdue}d late',
                           style: AppTypography.caption(context).copyWith(
-                            color: AppColors.danger, fontSize: 9,
+                            color: AppColors.danger,
+                            fontSize: 9,
                           )),
                     ),
                   ],
@@ -178,8 +219,289 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     );
   }
 
+  void _showCreateInvoiceDialog(BuildContext context) {
+    final notesCtrl = TextEditingController();
+    String selectedCurrency = 'USD';
+    String paymentTerms = 'Net 30';
+    String status = 'draft';
+    String? selectedClientId;
+    final items = <_InvoiceLineItem>[_InvoiceLineItem()];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('New Invoice', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 500,
+            height: 450,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Client selection
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final clients = ref.watch(clientsProvider);
+                      return DropdownButtonFormField<String>(
+                        value: selectedClientId,
+                        decoration: const InputDecoration(
+                          labelText: 'Client *',
+                          prefixIcon: Icon(Icons.business_outlined, size: 20),
+                        ),
+                        dropdownColor: AppColors.bgCard,
+                        items: clients
+                            .map((c) => DropdownMenuItem(
+                                  value: c.id,
+                                  child: Text(c.companyName),
+                                ))
+                            .toList(),
+                        onChanged: (v) => setDialogState(() => selectedClientId = v),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Currency and payment terms
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCurrency,
+                          decoration: const InputDecoration(
+                            labelText: 'Currency',
+                          ),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'USD', child: Text('USD (\$)')),
+                            DropdownMenuItem(
+                                value: 'EUR', child: Text('EUR (€)')),
+                            DropdownMenuItem(
+                                value: 'GBP', child: Text('GBP (£)')),
+                          ],
+                          onChanged: (v) =>
+                              setDialogState(() => selectedCurrency = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: paymentTerms,
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Terms',
+                          ),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'Net 15', child: Text('Net 15')),
+                            DropdownMenuItem(
+                                value: 'Net 30', child: Text('Net 30')),
+                            DropdownMenuItem(
+                                value: 'Net 45', child: Text('Net 45')),
+                            DropdownMenuItem(
+                                value: 'Net 60', child: Text('Net 60')),
+                            DropdownMenuItem(
+                                value: 'Due on Receipt',
+                                child: Text('Due on Receipt')),
+                          ],
+                          onChanged: (v) =>
+                              setDialogState(() => paymentTerms = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Line items
+                  Row(
+                    children: [
+                      Text('Line Items',
+                          style: AppTypography.heading2(context)),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(
+                            () => items.add(_InvoiceLineItem())),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add Item'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...List.generate(items.length, (i) {
+                    final item = items[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: item.descCtrl,
+                              decoration: InputDecoration(
+                                hintText: 'Description',
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.qtyCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Qty',
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: item.priceCtrl,
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
+                              decoration: InputDecoration(
+                                hintText: 'Price',
+                                prefixText: '\$',
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          if (items.length > 1)
+                            IconButton(
+                              onPressed: () =>
+                                  setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline,
+                                  color: AppColors.danger, size: 20),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+
+                  // Notes
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: notesCtrl,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Notes',
+                      hintText: 'Payment instructions, thank you note...',
+                    ),
+                  ),
+
+                  // Total preview
+                  const SizedBox(height: 12),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      double total = 0;
+                      for (final item in items) {
+                        final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
+                        final price =
+                            double.tryParse(item.priceCtrl.text) ?? 0;
+                        total += qty * price;
+                      }
+                      final symbol = selectedCurrency == 'USD'
+                          ? '\$'
+                          : selectedCurrency == 'EUR'
+                              ? '€'
+                              : '£';
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Total', style: AppTypography.heading2(context)),
+                            Text('$symbol${total.toStringAsFixed(2)}',
+                                style: AppTypography.heading2(context)
+                                    .copyWith(color: AppColors.primary)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (selectedClientId == null) return;
+
+                final lineItems = items
+                    .where((item) => item.descCtrl.text.isNotEmpty)
+                    .map((item) => InvoiceLineItem(
+                          description: item.descCtrl.text,
+                          quantity:
+                              double.tryParse(item.qtyCtrl.text) ?? 1,
+                          rate:
+                              double.tryParse(item.priceCtrl.text) ?? 0,
+                        ))
+                    .toList();
+
+                final total = lineItems.fold(
+                    0.0,
+                    (sum, item) =>
+                        sum + item.quantity * item.rate);
+
+                final invoice = Invoice(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  number:
+                      'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                  clientId: selectedClientId ?? '',
+
+                  status: status,
+                  lineItems: lineItems,
+                  subtotal: total,
+                  taxRate: 0,
+                  taxAmount: 0,
+                  total: total,
+                  currency: selectedCurrency,
+                  paymentTerms: paymentTerms,
+                  dueDate: DateTime.now().add(const Duration(days: 30)),
+                  notes: notesCtrl.text.trim(),
+                );
+
+                ref.read(invoicesProvider.notifier).addInvoice(invoice);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Create Invoice'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _fmt(double v) {
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
   }
+}
+
+class _InvoiceLineItem {
+  final descCtrl = TextEditingController();
+  final qtyCtrl = TextEditingController(text: '1');
+  final priceCtrl = TextEditingController();
 }

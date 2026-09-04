@@ -49,7 +49,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showUploadDialog(context),
                 icon: const Icon(Icons.upload_file, size: 18),
                 label: const Text('Upload'),
               ),
@@ -73,9 +73,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                 ? EmptyState(
                     icon: Icons.folder_copy_outlined,
                     title: 'No documents yet',
-                    subtitle: 'Upload files to your vault',
-                    actionLabel: 'Upload File',
-                    onAction: () {},
+                    subtitle: 'Upload files to your vault',                  actionLabel: 'Upload File', onAction: () => _showUploadDialog(context),
                   )
                 : _view == 'grid'
                     ? _buildGridView(filtered)
@@ -211,6 +209,82 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showUploadDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    String fileType = 'document';
+    String projectId = '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('Upload Document', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Simulated file selector
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryTint,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.solid),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.cloud_upload_outlined, size: 40, color: AppColors.primary),
+                      const SizedBox(height: 8),
+                      Text('Click to select a file', style: AppTypography.body(context)),
+                      Text('PDF, Images, Docs, Sheets', style: AppTypography.caption(context)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'File Name *'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: fileType,
+                  decoration: const InputDecoration(labelText: 'File Type'),
+                  dropdownColor: AppColors.bgCard,
+                  items: const [
+                    DropdownMenuItem(value: 'document', child: Text('Document')),
+                    DropdownMenuItem(value: 'pdf', child: Text('PDF')),
+                    DropdownMenuItem(value: 'image', child: Text('Image')),
+                    DropdownMenuItem(value: 'spreadsheet', child: Text('Spreadsheet')),
+                  ],
+                  onChanged: (v) => setDialogState(() => fileType = v!),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                if (nameCtrl.text.trim().isEmpty) return;
+                final doc = AppDocument(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: nameCtrl.text.trim(),
+                  mimeType: fileType,
+                  sizeBytes: 0,
+                  projectId: projectId,
+                );
+                ref.read(documentsProvider.notifier).addDocument(doc);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Upload'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
