@@ -237,7 +237,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
     );
   }
 
-  void _handleQuoteAction(String action, Quote quote) {
+  void _handleQuoteAction(String action, Quote quote) async {
     switch (action) {
       case 'send':
         ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'sent'));
@@ -249,23 +249,26 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
         ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'rejected'));
         break;
       case 'delete':
-        showDialog(
+        final confirmed = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogCtx) => AlertDialog(
             title: const Text('Delete Proposal'),
-            content: const Text('Are you sure you want to delete this proposal?'),
+            content: const Text('Are you sure you want to delete this proposal? This cannot be undone.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
               TextButton(
-                onPressed: () {
-                  ref.read(quotesProvider.notifier).deleteQuote(quote.id);
-                  Navigator.pop(ctx);
-                },
-                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+                onPressed: () => Navigator.of(dialogCtx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(true),
+                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
         );
+        if (confirmed == true && mounted) {
+          await ref.read(quotesProvider.notifier).deleteQuote(quote.id);
+        }
         break;
     }
   }

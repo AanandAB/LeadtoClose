@@ -181,7 +181,7 @@ class _ContractsScreenState extends ConsumerState<ContractsScreen> {
     );
   }
 
-  void _handleContractAction(String action, Contract contract) {
+  void _handleContractAction(String action, Contract contract) async {
     switch (action) {
       case 'send':
         ref.read(contractsProvider.notifier).updateContract(contract.copyWith(status: 'sent'));
@@ -190,23 +190,23 @@ class _ContractsScreenState extends ConsumerState<ContractsScreen> {
         ref.read(contractsProvider.notifier).updateContract(contract.copyWith(status: 'active', signedAt: DateTime.now()));
         break;
       case 'delete':
-        showDialog(
+        final confirmed = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogCtx) => AlertDialog(
             title: const Text('Delete Contract'),
-            content: const Text('Are you sure you want to delete this contract?'),
+            content: const Text('Are you sure you want to delete this contract? This cannot be undone.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(dialogCtx).pop(false), child: const Text('Cancel')),
               TextButton(
-                onPressed: () {
-                  ref.read(contractsProvider.notifier).deleteContract(contract.id);
-                  Navigator.pop(ctx);
-                },
-                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+                onPressed: () => Navigator.of(dialogCtx).pop(true),
+                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
         );
+        if (confirmed == true && mounted) {
+          await ref.read(contractsProvider.notifier).deleteContract(contract.id);
+        }
         break;
     }
   }

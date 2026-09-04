@@ -229,7 +229,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     );
   }
 
-  void _handleInvoiceAction(String action, Invoice invoice) {
+  void _handleInvoiceAction(String action, Invoice invoice) async {
     switch (action) {
       case 'send':
         ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'sent'));
@@ -238,23 +238,23 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'paid', amountPaid: invoice.total));
         break;
       case 'delete':
-        showDialog(
+        final confirmed = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogCtx) => AlertDialog(
             title: const Text('Delete Invoice'),
-            content: const Text('Are you sure you want to delete this invoice?'),
+            content: const Text('Are you sure you want to delete this invoice? This cannot be undone.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(dialogCtx).pop(false), child: const Text('Cancel')),
               TextButton(
-                onPressed: () {
-                  ref.read(invoicesProvider.notifier).deleteInvoice(invoice.id);
-                  Navigator.pop(ctx);
-                },
-                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+                onPressed: () => Navigator.of(dialogCtx).pop(true),
+                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
         );
+        if (confirmed == true && mounted) {
+          await ref.read(invoicesProvider.notifier).deleteInvoice(invoice.id);
+        }
         break;
     }
   }

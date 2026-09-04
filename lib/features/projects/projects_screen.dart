@@ -357,7 +357,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _handleProjectAction(String action, Project project) {
+  void _handleProjectAction(String action, Project project) async {
     switch (action) {
       case 'complete':
         ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.completed));
@@ -366,23 +366,23 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.active));
         break;
       case 'delete':
-        showDialog(
+        final confirmed = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (dialogCtx) => AlertDialog(
             title: const Text('Delete Project'),
-            content: const Text('Are you sure you want to delete this project?'),
+            content: const Text('Are you sure you want to delete this project? This cannot be undone.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(dialogCtx).pop(false), child: const Text('Cancel')),
               TextButton(
-                onPressed: () {
-                  ref.read(projectsProvider.notifier).deleteProject(project.id);
-                  Navigator.pop(ctx);
-                },
-                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+                onPressed: () => Navigator.of(dialogCtx).pop(true),
+                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
         );
+        if (confirmed == true && mounted) {
+          await ref.read(projectsProvider.notifier).deleteProject(project.id);
+        }
         break;
     }
   }
