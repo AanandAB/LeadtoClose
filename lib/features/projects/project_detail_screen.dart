@@ -608,7 +608,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                 clientId: project.clientId,
                 projectId: project.id,
-                status: 'draft',
+                status: 'active',
                 lineItems: [InvoiceLineItem(description: descCtrl.text.trim(), quantity: 1, rate: amount)],
                 subtotal: amount, total: amount, currency: currency,
                 paymentTerms: 'Net 30',

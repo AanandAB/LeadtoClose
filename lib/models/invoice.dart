@@ -36,7 +36,7 @@ class Invoice {
     this.total = 0,
     this.amountPaid = 0,
     this.currency = 'USD',
-    this.status = 'draft',
+    this.status = 'active',
     this.notes = '',
     this.paymentTerms = 'Net 30',
     DateTime? createdAt,
@@ -144,7 +144,7 @@ class Invoice {
         total: (json['total'] as num?)?.toDouble() ?? 0,
         amountPaid: (json['amountPaid'] as num?)?.toDouble() ?? 0,
         currency: json['currency']?.toString() ?? 'USD',
-        status: json['status']?.toString() ?? 'draft',
+        status: json['status']?.toString() ?? 'active',
         notes: json['notes']?.toString() ?? '',
         paymentTerms: json['paymentTerms']?.toString() ?? 'Net 30',
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??

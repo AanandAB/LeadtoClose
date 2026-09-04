@@ -418,8 +418,18 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 onSelected: (v) => _handleClientInvoiceAction(v, inv),
                 itemBuilder: (_) => [
                   const PopupMenuItem(value: 'edit', child: Text('Edit Invoice')),
-                  if (inv.status == 'draft') const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
-                  if (inv.status != 'paid') const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                  const PopupMenuDivider(),
+                  if (inv.status != 'active')
+                    const PopupMenuItem(value: 'active', child: Text('Mark as Active')),
+                  if (inv.status != 'draft')
+                    const PopupMenuItem(value: 'draft', child: Text('Mark as Draft')),
+                  if (inv.status != 'sent')
+                    const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+                  if (inv.status != 'paid')
+                    const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                  if (inv.status != 'cancelled')
+                    const PopupMenuItem(value: 'cancelled', child: Text('Mark as Cancelled')),
+                  const PopupMenuDivider(),
                   const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
                   const PopupMenuDivider(),
                   PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
@@ -931,6 +941,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   void _showCreateInvoiceDialog(BuildContext context, String clientId) {
     String currency = AppCurrency.code;
     String paymentTerms = 'Net 30';
+    String invStatus = 'active';
     final items = <_InvoiceItem>[_InvoiceItem()];
 
     showDialog(
@@ -978,6 +989,18 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: invStatus,
+                    decoration: const InputDecoration(labelText: 'Status'),
+                    dropdownColor: AppColors.bgCard,
+                    items: const [
+                      DropdownMenuItem(value: 'active', child: Text('Active')),
+                      DropdownMenuItem(value: 'draft', child: Text('Draft')),
+                      DropdownMenuItem(value: 'sent', child: Text('Sent')),
+                    ],
+                    onChanged: (v) => setDialogState(() => invStatus = v!),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -1062,7 +1085,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   clientId: clientId,
-                  status: 'draft',
+                  status: invStatus,
                   lineItems: lineItems,
                   subtotal: total,
                   total: total,
@@ -1194,12 +1217,24 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       _showEditInvoiceDialog(context, inv);
       return;
     }
+    if (action == 'active') {
+      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'active'));
+      return;
+    }
+    if (action == 'draft') {
+      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'draft'));
+      return;
+    }
     if (action == 'send') {
       ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'sent'));
       return;
     }
     if (action == 'paid') {
       ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'paid', amountPaid: inv.total));
+      return;
+    }
+    if (action == 'cancelled') {
+      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'cancelled'));
       return;
     }
     if (action == 'print') {

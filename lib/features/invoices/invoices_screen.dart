@@ -83,6 +83,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           Row(
             children: [
               _filterBtn('All', 'all'),
+              _filterBtn('Active', 'active'),
               _filterBtn('Draft', 'draft'),
               _filterBtn('Sent', 'sent'),
               _filterBtn('Paid', 'paid'),
@@ -214,10 +215,18 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                     onSelected: (v) => _handleInvoiceAction(v, invoice),
                     itemBuilder: (_) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit Invoice')),
-                      if (invoice.status == 'draft')
+                      const PopupMenuDivider(),
+                      if (invoice.status != 'active')
+                        const PopupMenuItem(value: 'active', child: Text('Mark as Active')),
+                      if (invoice.status != 'draft')
+                        const PopupMenuItem(value: 'draft', child: Text('Mark as Draft')),
+                      if (invoice.status != 'sent')
                         const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
                       if (invoice.status != 'paid')
                         const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                      if (invoice.status != 'cancelled')
+                        const PopupMenuItem(value: 'cancelled', child: Text('Mark as Cancelled')),
+                      const PopupMenuDivider(),
                       const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
                       const PopupMenuDivider(),
                       PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
@@ -237,12 +246,24 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       _showEditInvoiceDialog(context, invoice);
       return;
     }
+    if (action == 'active') {
+      ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'active'));
+      return;
+    }
+    if (action == 'draft') {
+      ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'draft'));
+      return;
+    }
     if (action == 'send') {
       ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'sent'));
       return;
     }
     if (action == 'paid') {
       ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'paid', amountPaid: invoice.total));
+      return;
+    }
+    if (action == 'cancelled') {
+      ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'cancelled'));
       return;
     }
     if (action == 'print') {
@@ -269,6 +290,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final notesCtrl = TextEditingController(text: invoice.notes);
     String selectedCurrency = invoice.currency;
     String paymentTerms = invoice.paymentTerms;
+    String editStatus = invoice.status;
     final items = invoice.lineItems.map((item) {
       final e = _InvoiceLineItem();
       e.descCtrl.text = item.description;
@@ -325,6 +347,22 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Status
+                  DropdownButtonFormField<String>(
+                    value: editStatus,
+                    decoration: const InputDecoration(labelText: 'Status'),
+                    dropdownColor: AppColors.bgCard,
+                    items: const [
+                      DropdownMenuItem(value: 'active', child: Text('Active')),
+                      DropdownMenuItem(value: 'draft', child: Text('Draft')),
+                      DropdownMenuItem(value: 'sent', child: Text('Sent')),
+                      DropdownMenuItem(value: 'paid', child: Text('Paid')),
+                      DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                    ],
+                    onChanged: (v) => setDialogState(() => editStatus = v!),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -444,6 +482,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   total: total,
                   currency: selectedCurrency,
                   paymentTerms: paymentTerms,
+                  status: editStatus,
                   notes: notesCtrl.text.trim(),
                 ));
                 Navigator.pop(ctx);
@@ -460,7 +499,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final notesCtrl = TextEditingController();
     String selectedCurrency = AppCurrency.code;
     String paymentTerms = 'Net 30';
-    String status = 'draft';
+    String status = 'active';
     String? selectedClientId;
     final items = <_InvoiceLineItem>[_InvoiceLineItem()];
 
@@ -546,6 +585,22 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Status
+                  DropdownButtonFormField<String>(
+                    value: status,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                    ),
+                    dropdownColor: AppColors.bgCard,
+                    items: const [
+                      DropdownMenuItem(value: 'active', child: Text('Active')),
+                      DropdownMenuItem(value: 'draft', child: Text('Draft')),
+                      DropdownMenuItem(value: 'sent', child: Text('Sent')),
+                    ],
+                    onChanged: (v) => setDialogState(() => status = v!),
                   ),
                   const SizedBox(height: 16),
 
