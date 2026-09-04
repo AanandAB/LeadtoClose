@@ -60,9 +60,9 @@ class LeadsNotifier extends StateNotifier<List<Lead>> {
     refresh();
   }
 
-  Future<void> deleteLead(String id) async {
-    await _storage.deleteLead(id);
-    refresh();
+  void deleteLead(String id) {
+    state = state.where((l) => l.id != id).toList();
+    _storage.deleteLead(id);
   }
 
   List<Lead> getByStage(LeadStage stage) {
@@ -95,9 +95,9 @@ class ClientsNotifier extends StateNotifier<List<Client>> {
     refresh();
   }
 
-  Future<void> deleteClient(String id) async {
-    await _storage.deleteClient(id);
-    refresh();
+  void deleteClient(String id) {
+    state = state.where((c) => c.id != id).toList();
+    _storage.deleteClient(id);
   }
 }
 
@@ -126,9 +126,9 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
     refresh();
   }
 
-  Future<void> deleteProject(String id) async {
-    await _storage.deleteProject(id);
-    refresh();
+  void deleteProject(String id) {
+    state = state.where((p) => p.id != id).toList();
+    _storage.deleteProject(id);
   }
 
   List<Project> getByStatus(ProjectStatus status) {
@@ -165,9 +165,9 @@ class TasksNotifier extends StateNotifier<List<Task>> {
     refresh();
   }
 
-  Future<void> deleteTask(String id) async {
-    await _storage.deleteTask(id);
-    refresh();
+  void deleteTask(String id) {
+    state = state.where((t) => t.id != id).toList();
+    _storage.deleteTask(id);
   }
 
   List<Task> getByProject(String projectId) {
@@ -204,9 +204,9 @@ class InvoicesNotifier extends StateNotifier<List<Invoice>> {
     refresh();
   }
 
-  Future<void> deleteInvoice(String id) async {
-    await _storage.deleteInvoice(id);
-    refresh();
+  void deleteInvoice(String id) {
+    state = state.where((i) => i.id != id).toList();
+    _storage.deleteInvoice(id);
   }
 
   List<Invoice> getByStatus(String status) {
@@ -254,9 +254,9 @@ class QuotesNotifier extends StateNotifier<List<Quote>> {
     refresh();
   }
 
-  Future<void> deleteQuote(String id) async {
-    await _storage.deleteQuote(id);
-    refresh();
+  void deleteQuote(String id) {
+    state = state.where((q) => q.id != id).toList();
+    _storage.deleteQuote(id);
   }
 
   List<Quote> getByStatus(String status) {
@@ -297,9 +297,9 @@ class ContractsNotifier extends StateNotifier<List<Contract>> {
     refresh();
   }
 
-  Future<void> deleteContract(String id) async {
-    await _storage.deleteContract(id);
-    refresh();
+  void deleteContract(String id) {
+    state = state.where((c) => c.id != id).toList();
+    _storage.deleteContract(id);
   }
 
   List<Contract> getByClient(String clientId) {
@@ -332,9 +332,9 @@ class TimeEntriesNotifier extends StateNotifier<List<TimeEntry>> {
     refresh();
   }
 
-  Future<void> deleteTimeEntry(String id) async {
-    await _storage.deleteTimeEntry(id);
-    refresh();
+  void deleteTimeEntry(String id) {
+    state = state.where((t) => t.id != id).toList();
+    _storage.deleteTimeEntry(id);
   }
 
   List<TimeEntry> getByProject(String projectId) {
@@ -372,9 +372,9 @@ class DocumentsNotifier extends StateNotifier<List<AppDocument>> {
     refresh();
   }
 
-  Future<void> deleteDocument(String id) async {
-    await _storage.deleteDocument(id);
-    refresh();
+  void deleteDocument(String id) {
+    state = state.where((d) => d.id != id).toList();
+    _storage.deleteDocument(id);
   }
 
   List<AppDocument> getByProject(String projectId) {
@@ -408,9 +408,9 @@ class CommunicationsNotifier extends StateNotifier<List<Communication>> {
     refresh();
   }
 
-  Future<void> deleteCommunication(String id) async {
-    await _storage.deleteCommunication(id);
-    refresh();
+  void deleteCommunication(String id) {
+    state = state.where((c) => c.id != id).toList();
+    _storage.deleteCommunication(id);
   }
 
   List<Communication> getByClient(String clientId) {
@@ -447,9 +447,9 @@ class EventsNotifier extends StateNotifier<List<CalendarEvent>> {
     refresh();
   }
 
-  Future<void> deleteEvent(String id) async {
-    await _storage.deleteEvent(id);
-    refresh();
+  void deleteEvent(String id) {
+    state = state.where((e) => e.id != id).toList();
+    _storage.deleteEvent(id);
   }
 
   List<CalendarEvent> getByClient(String clientId) {
@@ -488,9 +488,9 @@ class MilestonesNotifier extends StateNotifier<List<Milestone>> {
     refresh();
   }
 
-  Future<void> deleteMilestone(String id) async {
-    await _storage.deleteMilestone(id);
-    refresh();
+  void deleteMilestone(String id) {
+    state = state.where((m) => m.id != id).toList();
+    _storage.deleteMilestone(id);
   }
 
   List<Milestone> getByProject(String projectId) {
