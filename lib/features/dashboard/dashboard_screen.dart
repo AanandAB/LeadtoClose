@@ -119,7 +119,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 child: StatCard(
                   label: 'Total Revenue',
-                  value: '\$${_formatNumber(totalRevenue)}',
+                  value: _formatNumber(totalRevenue),
                   color: AppColors.revenue,
                   icon: Icons.trending_up_rounded,
                 ),
@@ -128,7 +128,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 child: StatCard(
                   label: 'Outstanding',
-                  value: '\$${_formatNumber(outstanding)}',
+                  value: _formatNumber(outstanding),
                   color: AppColors.warning,
                   icon: Icons.schedule_rounded,
                 ),
@@ -137,7 +137,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 child: StatCard(
                   label: 'Overdue',
-                  value: '\$${_formatNumber(overdueAmount)}',
+                  value: _formatNumber(overdueAmount),
                   color: AppColors.danger,
                   icon: Icons.warning_amber_rounded,
                 ),
@@ -272,7 +272,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Icons.warning_amber_rounded,
         AppColors.danger,
         'Overdue Invoices',
-        '\$${_formatNumber(overdueAmount)} needs attention',
+        '${_formatNumber(overdueAmount)} needs attention',
       ));
     }
 
@@ -530,9 +530,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   String _formatNumber(double value) {
-    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(1)}K';
-    return value.toStringAsFixed(0);
+    return AppCurrency.formatCompact(value);
   }
 }
 

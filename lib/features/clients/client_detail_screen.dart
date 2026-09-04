@@ -115,14 +115,14 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 Row(
                   children: [
                     _miniStat('Projects', '${projects.length}', AppColors.info),
-                    _miniStat('Revenue', '\$${client.totalRevenue.toStringAsFixed(0)}', AppColors.success),
+                    _miniStat('Revenue', AppCurrency.format(client.totalRevenue), AppColors.success),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     _miniStat('Invoices', '${invoices.length}', AppColors.warning),
-                    _miniStat('Outstanding', '\$${client.outstandingBalance.toStringAsFixed(0)}', AppColors.danger),
+                    _miniStat('Outstanding', AppCurrency.format(client.outstandingBalance), AppColors.danger),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -282,7 +282,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               Icons.receipt_long,
               AppTheme.statusColor(i.status),
               'Invoice ${i.number}',
-              '${i.status} · \$${i.total.toStringAsFixed(0)}',
+              '${i.status} · ${AppCurrency.format(i.total)}',
               i.createdAt,
             )),
           ],
@@ -295,14 +295,14 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             children: [
               StatCard(
                 label: 'Total Revenue',
-                value: '\$${client.totalRevenue.toStringAsFixed(0)}',
+                value: AppCurrency.format(client.totalRevenue),
                 color: AppColors.success,
                 icon: Icons.trending_up,
               ),
               const SizedBox(width: 16),
               StatCard(
                 label: 'Outstanding',
-                value: '\$${client.outstandingBalance.toStringAsFixed(0)}',
+                value: AppCurrency.format(client.outstandingBalance),
                 color: AppColors.warning,
                 icon: Icons.schedule,
               ),
@@ -357,7 +357,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               ),
               if (p.budget > 0)
                 Expanded(
-                  child: Text('\$${p.budget.toStringAsFixed(0)}',
+                  child: Text(AppCurrency.format(p.budget),
                       style: AppTypography.label(context)),
                 ),
               if (p.dueDate != null)
@@ -405,7 +405,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 color: AppColors.textPrimary, fontWeight: FontWeight.w600,
               )),
               const Spacer(),
-              Text('\$${inv.total.toStringAsFixed(0)}',
+              Text(AppCurrency.format(inv.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
               const SizedBox(width: 12),
               StatusChip(label: inv.status, color: statusColor, isSmall: true),
@@ -448,7 +448,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 color: AppColors.textPrimary, fontWeight: FontWeight.w600,
               )),
               const Spacer(),
-              Text('\$${q.total.toStringAsFixed(0)}',
+              Text(AppCurrency.format(q.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
               const SizedBox(width: 12),
               StatusChip(label: q.status, color: statusColor, isSmall: true),
@@ -751,7 +751,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   }
 
   void _showCreateInvoiceDialog(BuildContext context, String clientId) {
-    String currency = 'USD';
+    String currency = AppCurrency.code;
     String paymentTerms = 'Net 30';
     final items = <_InvoiceItem>[_InvoiceItem()];
 
@@ -775,9 +775,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                           decoration: const InputDecoration(labelText: 'Currency'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(value: 'USD', child: Text('USD')),
-                            DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-                            DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                            const DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+                            const DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
+                            const DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
+                            const DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
                           ],
                           onChanged: (v) => setDialogState(() => currency = v!),
                         ),
@@ -848,7 +849,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: '\$',
+                                prefixText: AppCurrency.symbol,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -957,7 +958,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: '\$',
+                                prefixText: AppCurrency.symbol,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),

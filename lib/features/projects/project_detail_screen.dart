@@ -100,7 +100,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text('\$${project.spent.toStringAsFixed(0)} / \$${project.budget.toStringAsFixed(0)}',
+                                  Text('${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
                                       style: AppTypography.caption(context)),
                                   const Spacer(),
                                   Text('${project.budgetPercentage.toStringAsFixed(0)}%',
@@ -156,8 +156,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 if (project.startDate != null)
                   _infoRow('Start Date', DateFormat('MMM d, yyyy').format(project.startDate!)),
                 if (project.budget > 0) ...[
-                  _infoRow('Budget', '\$${project.budget.toStringAsFixed(0)}'),
-                  _infoRow('Spent', '\$${project.spent.toStringAsFixed(0)}'),
+                  _infoRow('Budget', AppCurrency.format(project.budget)),
+                  _infoRow('Spent', AppCurrency.format(project.spent)),
                 ],
                 const SizedBox(height: 16),
 

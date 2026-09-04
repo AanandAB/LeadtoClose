@@ -55,19 +55,19 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             children: [
               StatCard(
                   label: 'Paid',
-                  value: '\$${_fmt(totalRevenue)}',
+                  value: _fmt(totalRevenue),
                   color: AppColors.success,
                   icon: Icons.check_circle_outline),
               const SizedBox(width: 16),
               StatCard(
                   label: 'Outstanding',
-                  value: '\$${_fmt(outstanding)}',
+                  value: _fmt(outstanding),
                   color: AppColors.warning,
                   icon: Icons.schedule_rounded),
               const SizedBox(width: 16),
               StatCard(
                   label: 'Overdue',
-                  value: '\$${_fmt(overdue)}',
+                  value: _fmt(overdue),
                   color: AppColors.danger,
                   icon: Icons.warning_amber),
               const SizedBox(width: 16),
@@ -137,11 +137,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
   Widget _buildInvoiceCard(BuildContext context, Invoice invoice) {
     final statusColor = AppTheme.statusColor(invoice.status);
-    final symbol = invoice.currency == 'USD'
-        ? '\$'
-        : invoice.currency == 'EUR'
-            ? '€'
-            : '£';
+    final symbol = AppCurrency.symbol;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -265,7 +261,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
   void _showCreateInvoiceDialog(BuildContext context) {
     final notesCtrl = TextEditingController();
-    String selectedCurrency = 'USD';
+    String selectedCurrency = AppCurrency.code;
     String paymentTerms = 'Net 30';
     String status = 'draft';
     String? selectedClientId;
@@ -317,12 +313,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                           ),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(
-                                value: 'USD', child: Text('USD (\$)')),
-                            DropdownMenuItem(
-                                value: 'EUR', child: Text('EUR (€)')),
-                            DropdownMenuItem(
-                                value: 'GBP', child: Text('GBP (£)')),
+                            DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+                            DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
+                            DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
+                            DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
                           ],
                           onChanged: (v) =>
                               setDialogState(() => selectedCurrency = v!),
@@ -415,7 +409,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                                   decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: '\$',
+                                prefixText: AppCurrency.symbol,
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(
@@ -457,11 +451,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                             double.tryParse(item.priceCtrl.text) ?? 0;
                         total += qty * price;
                       }
-                      final symbol = selectedCurrency == 'USD'
-                          ? '\$'
-                          : selectedCurrency == 'EUR'
-                              ? '€'
-                              : '£';
+                      final prevCode = AppCurrency.code;
+                      AppCurrency.setCode(selectedCurrency);
+                      final totalText = AppCurrency.formatDecimal(total);
+                      AppCurrency.setCode(prevCode);
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -472,7 +465,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Total', style: AppTypography.heading2(context)),
-                            Text('$symbol${total.toStringAsFixed(2)}',
+                            Text(totalText,
                                 style: AppTypography.heading2(context)
                                     .copyWith(color: AppColors.primary)),
                           ],
@@ -539,8 +532,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   }
 
   String _fmt(double v) {
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
+    return AppCurrency.formatCompact(v);
   }
 }
 

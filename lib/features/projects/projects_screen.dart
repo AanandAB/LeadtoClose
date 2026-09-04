@@ -209,7 +209,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               ),
             ),
             const SizedBox(height: 4),
-            Text('\$${project.spent.toStringAsFixed(0)} / \$${project.budget.toStringAsFixed(0)}',
+            Text('${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
                 style: AppTypography.caption(context)),
           ],
         ],
@@ -253,7 +253,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Budget', style: AppTypography.caption(context)),
-                    Text('\$${p.budget.toStringAsFixed(0)}',
+                    Text(AppCurrency.format(p.budget),
                         style: AppTypography.label(context)),
                   ],
                 ),

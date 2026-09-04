@@ -20,7 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _websiteCtrl;
   late TextEditingController _addressCtrl;
   late TextEditingController _taxRateCtrl;
-  String _currency = 'USD';
+  String _currency = AppCurrency.code;
   String _paymentTerms = 'Net 30';
 
   @override
@@ -219,10 +219,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       dropdownColor: AppColors.bgCard,
       items: const [
+        DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
         DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
         DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
         DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
-        DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+        DropdownMenuItem(value: 'JPY', child: Text('JPY (¥)')),
         DropdownMenuItem(value: 'CAD', child: Text('CAD (\$)')),
         DropdownMenuItem(value: 'AUD', child: Text('AUD (\$)')),
       ],

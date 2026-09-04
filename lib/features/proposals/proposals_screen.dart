@@ -62,21 +62,21 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
             children: [
               StatCard(
                 label: 'Total Value',
-                value: '\$${_formatNum(totalValue)}',
+                value: _formatNum(totalValue),
                 color: AppColors.info,
                 icon: Icons.description_outlined,
               ),
               const SizedBox(width: 16),
               StatCard(
                 label: 'Accepted',
-                value: '\$${_formatNum(acceptedValue)}',
+                value: _formatNum(acceptedValue),
                 color: AppColors.success,
                 icon: Icons.check_circle_outline,
               ),
               const SizedBox(width: 16),
               StatCard(
                 label: 'Pending',
-                value: '\$${_formatNum(pendingValue)}',
+                value: _formatNum(pendingValue),
                 color: AppColors.warning,
                 icon: Icons.schedule_rounded,
               ),
@@ -200,7 +200,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${quote.total.toStringAsFixed(0)}',
+                AppCurrency.format(quote.total),
                 style: AppTypography.price(context).copyWith(fontSize: 16),
               ),
               const SizedBox(height: 4),
@@ -388,7 +388,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                                   TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: '\$',
+                                prefixText: AppCurrency.symbol,
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(
@@ -459,7 +459,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                               children: [
                                 Text('Subtotal',
                                     style: AppTypography.body(context)),
-                                Text('\$${subtotal.toStringAsFixed(2)}',
+                                Text(AppCurrency.formatDecimal(subtotal),
                                     style: AppTypography.body(context)),
                               ],
                             ),
@@ -470,7 +470,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                                 children: [
                                   Text('Tax (${taxRate.toStringAsFixed(1)}%)',
                                       style: AppTypography.body(context)),
-                                  Text('\$${tax.toStringAsFixed(2)}',
+                                  Text(AppCurrency.formatDecimal(tax),
                                       style: AppTypography.body(context)),
                                 ],
                               ),
@@ -480,7 +480,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                               children: [
                                 Text('Total',
                                     style: AppTypography.heading2(context)),
-                                Text('\$${total.toStringAsFixed(2)}',
+                                Text(AppCurrency.formatDecimal(total),
                                     style: AppTypography.heading2(context)
                                         .copyWith(color: AppColors.primary)),
                               ],
@@ -556,8 +556,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
   }
 
   String _formatNum(double v) {
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
+    return AppCurrency.formatCompact(v);
   }
 }
 

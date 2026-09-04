@@ -14,6 +14,7 @@ class NaroApp extends ConsumerWidget {
 
     // Sync the AppColors palette with the current dark mode setting
     AppColors.setDarkMode(settings.isDarkMode);
+    AppCurrency.setCode(settings.currency.isNotEmpty ? settings.currency : 'INR');
 
     return MaterialApp.router(
       title: 'Naro',

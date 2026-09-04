@@ -52,13 +52,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              StatCard(label: 'Total Revenue', value: '\$${_fmt(totalRevenue)}', color: AppColors.success, icon: Icons.trending_up),
+              StatCard(label: 'Total Revenue', value: _fmt(totalRevenue), color: AppColors.success, icon: Icons.trending_up),
               const SizedBox(width: 16),
-              StatCard(label: 'Outstanding', value: '\$${_fmt(outstanding)}', color: AppColors.warning, icon: Icons.schedule),
+              StatCard(label: 'Outstanding', value: _fmt(outstanding), color: AppColors.warning, icon: Icons.schedule),
               const SizedBox(width: 16),
-              StatCard(label: 'Overdue', value: '\$${_fmt(overdue)}', color: AppColors.danger, icon: Icons.warning_amber),
+              StatCard(label: 'Overdue', value: _fmt(overdue), color: AppColors.danger, icon: Icons.warning_amber),
               const SizedBox(width: 16),
-              StatCard(label: 'Avg Invoice', value: '\$${_fmt(avgInvoice)}', color: AppColors.info, icon: Icons.receipt),
+              StatCard(label: 'Avg Invoice', value: _fmt(avgInvoice), color: AppColors.info, icon: Icons.receipt),
             ],
           ),
           const SizedBox(height: 32),
@@ -206,8 +206,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   String _fmt(double v) {
-    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
-    return v.toStringAsFixed(0);
+    return AppCurrency.formatCompact(v);
   }
 }

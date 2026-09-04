@@ -232,7 +232,7 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
             if (lead.estimatedBudget > 0) ...[
               const SizedBox(height: 8),
               Text(
-                '\$${lead.estimatedBudget.toStringAsFixed(0)}',
+                AppCurrency.format(lead.estimatedBudget),
                 style: AppTypography.label(context).copyWith(
                   color: AppColors.revenue,
                 ),
@@ -499,7 +499,7 @@ class _LeadDetailSheet extends ConsumerWidget {
                   DateFormat('MMM d, yyyy').format(lead.createdAt)),
               if (lead.estimatedBudget > 0)
                 _infoChip(
-                    Icons.attach_money, '\$${lead.estimatedBudget.toStringAsFixed(0)}'),
+                    Icons.attach_money, AppCurrency.format(lead.estimatedBudget)),
               ScoreBadge(score: lead.score),
             ],
           ),

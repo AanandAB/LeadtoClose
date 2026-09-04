@@ -299,3 +299,76 @@ class AppTheme {
     }
   }
 }
+
+// Currency helper — reads from AppSettings for the whole app
+class AppCurrency {
+  static String _code = 'INR';
+  static String get code => _code;
+  static void setCode(String c) => _code = c;
+
+  static String get symbol {
+    switch (_code) {
+      case 'INR': return '₹';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'JPY': return '¥';
+      default: return '\$';
+    }
+  }
+
+  static String format(double amount) {
+    if (_code == 'INR') {
+      // Indian number formatting: ₹1,23,456
+      final isNeg = amount < 0;
+      final abs = amount.abs();
+      final parts = abs.toStringAsFixed(0);
+      String formatted;
+      if (parts.length <= 3) {
+        formatted = parts;
+      } else {
+        final last3 = parts.substring(parts.length - 3);
+        final rest = parts.substring(0, parts.length - 3);
+        final grouped = rest.replaceAllMapped(
+          RegExp(r'(\d+?)(?=(\d{2})+\$)'),
+          (m) => '${m[1]},',
+        );
+        formatted = '$grouped,$last3';
+      }
+      return '$symbol$formatted';
+    }
+    return '$symbol${amount.toStringAsFixed(0)}';
+  }
+
+  static String formatDecimal(double amount) {
+    if (_code == 'INR') {
+      final isNeg = amount < 0;
+      final abs = amount.abs();
+      final parts = abs.toStringAsFixed(2);
+      final intPart = parts.split('.')[0];
+      final decPart = parts.split('.')[1];
+      String formatted;
+      if (intPart.length <= 3) {
+        formatted = intPart;
+      } else {
+        final last3 = intPart.substring(intPart.length - 3);
+        final rest = intPart.substring(0, intPart.length - 3);
+        final grouped = rest.replaceAllMapped(
+          RegExp(r'(\d+?)(?=(\d{2})+\$)'),
+          (m) => '${m[1]},',
+        );
+        formatted = '$grouped,$last3';
+      }
+      return '$symbol$formatted.$decPart';
+    }
+    return '$symbol${amount.toStringAsFixed(2)}';
+  }
+
+  static String formatCompact(double value) {
+    if (value >= 10000000) return '$symbol${(value / 10000000).toStringAsFixed(1)}Cr';
+    if (value >= 100000) return '$symbol${(value / 100000).toStringAsFixed(1)}L';
+    if (value >= 1000) return '$symbol${(value / 1000).toStringAsFixed(1)}K';
+    return '$symbol${value.toStringAsFixed(0)}';
+  }
+
+  static List<String> get supportedCurrencies => ['INR', 'USD', 'EUR', 'GBP', 'JPY'];
+}

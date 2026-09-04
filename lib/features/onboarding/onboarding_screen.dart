@@ -17,7 +17,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _businessNameCtrl = TextEditingController();
   final _ownerNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  String _currency = 'USD';
+  String _currency = 'INR';
   String _paymentTerms = 'Net 30';
 
   @override

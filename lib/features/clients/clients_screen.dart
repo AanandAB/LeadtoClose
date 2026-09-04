@@ -211,7 +211,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
               if (client.totalRevenue > 0) ...[
                 const SizedBox(height: 4),
                 Text(
-                  '\$${client.totalRevenue.toStringAsFixed(0)}',
+                  AppCurrency.format(client.totalRevenue),
                   style: AppTypography.label(context).copyWith(
                     color: AppColors.revenue,
                   ),
