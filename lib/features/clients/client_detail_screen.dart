@@ -9,6 +9,7 @@ import '../../models/invoice.dart';
 import '../../models/communication.dart';
 import '../../models/quote.dart';
 import '../../providers.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/shared_widgets.dart';
 
 class ClientDetailScreen extends ConsumerStatefulWidget {
@@ -409,6 +410,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
               const SizedBox(width: 12),
               StatusChip(label: inv.status, color: statusColor, isSmall: true),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                onSelected: (v) => _handleClientInvoiceAction(v, inv),
+                itemBuilder: (_) => [
+                  if (inv.status == 'draft') const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+                  if (inv.status != 'paid') const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                  const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                ],
+              ),
             ],
           ),
         );
@@ -1007,6 +1021,35 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         ),
       ),
     );
+  }
+
+  void _handleClientInvoiceAction(String action, Invoice inv) {
+    if (action == 'send') {
+      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'sent'));
+      return;
+    }
+    if (action == 'paid') {
+      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'paid', amountPaid: inv.total));
+      return;
+    }
+    if (action == 'print') {
+      final settings = ref.read(settingsProvider);
+      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'Naro', currency: AppCurrency.symbol);
+      return;
+    }
+    if (action == 'delete') {
+      ref.read(invoicesProvider.notifier).deleteInvoice(inv.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Invoice deleted'),
+            action: SnackBarAction(label: 'Undo', onPressed: () {
+              ref.read(invoicesProvider.notifier).addInvoice(inv);
+            }),
+          ),
+        );
+      }
+    }
   }
 
   void _showComposeMessageDialog(BuildContext context, String clientId) {

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/project.dart';
 import '../../models/task.dart';
+import '../../models/invoice.dart';
 import '../../providers.dart';
 import '../../widgets/shared_widgets.dart';
 
@@ -33,6 +34,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     final tasks = ref.watch(tasksProvider).where((t) => t.projectId == project.id).toList();
     final timeEntries = ref.watch(timeEntriesProvider).where((t) => t.projectId == project.id).toList();
+    final projectInvoices = ref.watch(invoicesProvider).where((i) => i.clientId == project.clientId).toList();
     final totalHours = timeEntries.fold(0.0, (s, e) => s + e.hours);
     final billableHours = timeEntries.where((e) => e.isBillable).fold(0.0, (s, e) => s + e.hours);
 
@@ -180,6 +182,40 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 )),
                 const SizedBox(height: 8),
                 Text('No milestones yet', style: AppTypography.bodySmall(context)),
+                const SizedBox(height: 20),
+
+                // Invoices section
+                Row(
+                  children: [
+                    Text('Invoices', style: AppTypography.label(context).copyWith(
+                      color: AppColors.textMuted, letterSpacing: 0.5,
+                    )),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => _showCreateInvoiceForProject(context, project),
+                      child: Icon(Icons.add_circle_outline, size: 16, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (projectInvoices.isEmpty)
+                  Text('No invoices yet', style: AppTypography.bodySmall(context)),
+                ...projectInvoices.map((inv) => Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.receipt_long, size: 14, color: AppTheme.statusColor(inv.status)),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(inv.number, style: AppTypography.bodySmall(context))),
+                      Text(AppCurrency.format(inv.total), style: AppTypography.label(context).copyWith(fontSize: 11)),
+                    ],
+                  ),
+                )),
               ],
             ),
           ),
@@ -529,6 +565,60 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           Expanded(child: Text(value, style: AppTypography.body(context).copyWith(
             color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 13,
           ))),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateInvoiceForProject(BuildContext context, Project project) {
+    final descCtrl = TextEditingController();
+    final priceCtrl = TextEditingController();
+    String currency = AppCurrency.code;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('New Invoice for ${project.name}', style: AppTypography.heading2(context)),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(labelText: 'Description', prefixIcon: Icon(Icons.description_outlined, size: 20)),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceCtrl,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(labelText: 'Amount', prefixText: AppCurrency.symbol, prefixIcon: const Icon(Icons.attach_money, size: 20)),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (descCtrl.text.trim().isEmpty) return;
+              final amount = double.tryParse(priceCtrl.text) ?? 0;
+              final invoice = Invoice(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                clientId: project.clientId,
+                projectId: project.id,
+                status: 'draft',
+                lineItems: [InvoiceLineItem(description: descCtrl.text.trim(), quantity: 1, rate: amount)],
+                subtotal: amount, total: amount, currency: currency,
+                paymentTerms: 'Net 30',
+                dueDate: DateTime.now().add(const Duration(days: 30)),
+              );
+              ref.read(invoicesProvider.notifier).addInvoice(invoice);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Create Invoice'),
+          ),
         ],
       ),
     );
