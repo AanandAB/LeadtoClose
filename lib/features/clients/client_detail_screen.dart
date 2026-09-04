@@ -11,6 +11,7 @@ import '../../models/quote.dart';
 import '../../providers.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/shared_widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClientDetailScreen extends ConsumerStatefulWidget {
   final String clientId;
@@ -1278,22 +1279,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 ref.read(communicationsProvider.notifier).addCommunication(comm);
                 Navigator.pop(ctx);
 
-                // If WhatsApp, open WhatsApp with the message
+                // If WhatsApp, open WhatsApp with the pre-written message
                 if (messageType == 'sms') {
-                  final phone = client?.primaryContact?.phone ?? '';
+                  final phone = (client?.primaryContact?.phone ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
                   final message = Uri.encodeComponent(bodyCtrl.text.trim());
                   if (phone.isNotEmpty) {
-                    // Try to launch WhatsApp
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('WhatsApp message logged. Open WhatsApp to send to $phone'),
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
+                    final waUrl = Uri.parse('https://wa.me/$phone?text=$message');
+                    launchUrl(waUrl, mode: LaunchMode.externalApplication).catchError((_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not open WhatsApp. Make sure WhatsApp is installed.')),
+                        );
+                      }
+                      return false;
+                    });
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No phone number found for this client')),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No phone number found for this client. Add a phone number first.')),
+                      );
+                    }
                   }
                 }
               },

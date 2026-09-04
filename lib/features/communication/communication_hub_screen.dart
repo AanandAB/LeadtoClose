@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../models/communication.dart';
 import '../../providers.dart';
 import '../../widgets/shared_widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CommunicationHubScreen extends ConsumerStatefulWidget {
   const CommunicationHubScreen({super.key});
@@ -329,9 +330,32 @@ class _CommunicationHubScreenState
                     .read(communicationsProvider.notifier)
                     .addCommunication(comm);
                 Navigator.pop(ctx);
+
+                // If WhatsApp, open WhatsApp with the pre-written message
+                if (messageType == 'sms' && selectedClientId != null) {
+                  final clients = ref.read(clientsProvider);
+                  final client = clients.where((c) => c.id == selectedClientId).firstOrNull;
+                  final phone = (client?.primaryContact?.phone ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
+                  final message = Uri.encodeComponent(bodyCtrl.text.trim());
+                  if (phone.isNotEmpty) {
+                    final waUrl = Uri.parse('https://wa.me/$phone?text=$message');
+                    launchUrl(waUrl, mode: LaunchMode.externalApplication).catchError((_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not open WhatsApp. Make sure WhatsApp is installed.')),
+                        );
+                      }
+                      return false;
+                    });
+                  } else if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No phone number found for this client. Add a phone number first.')),
+                    );
+                  }
+                }
               },
-              icon: const Icon(Icons.send, size: 16),
-              label: const Text('Send'),
+              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send, size: 16),
+              label: Text(messageType == 'sms' ? 'Log & Open WhatsApp' : 'Send'),
             ),
           ],
         ),
