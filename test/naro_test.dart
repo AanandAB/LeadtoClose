@@ -66,7 +66,7 @@ void main() {
     });
 
     test('supported currencies list is correct', () {
-      expect(AppCurrency.supportedCurrencies, ['INR', 'USD', 'EUR', 'GBP', 'JPY']);
+      expect(AppCurrency.supportedCurrencies, ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AED', 'SAR']);
     });
   });
 
@@ -250,7 +250,7 @@ void main() {
     test('creates with defaults', () {
       final invoice = Invoice(id: '1', number: 'INV-001');
       expect(invoice.number, 'INV-001');
-      expect(invoice.status, 'draft');
+      expect(invoice.status, 'active');
       expect(invoice.currency, 'USD');
       expect(invoice.balanceDue, invoice.total);
     });
