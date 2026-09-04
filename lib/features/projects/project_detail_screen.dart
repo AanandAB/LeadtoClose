@@ -129,7 +129,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
                 // Task board
                 Expanded(
-                  child: _view == 'kanban' ? _buildKanban(tasks) : _buildList(tasks),
+                  child: _view == 'kanban' ? _buildKanban(tasks) : _buildList(tasks, project.id),
                 ),
               ],
             ),
@@ -273,7 +273,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     );
   }
 
-  Widget _buildList(List<Task> tasks) {
+  Widget _buildList(List<Task> tasks, String projectId) {
     if (tasks.isEmpty) {
       return Center(
         child: EmptyState(
@@ -281,7 +281,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           title: 'No tasks yet',
           subtitle: 'Add your first task to get started',
           actionLabel: 'Add Task',
-          onAction: () {},
+          onAction: () => _showAddTaskDialog(context, projectId),
         ),
       );
     }

@@ -210,6 +210,20 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                           )),
                     ),
                   ],
+                  const SizedBox(width: 4),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                    onSelected: (v) => _handleInvoiceAction(v, invoice),
+                    itemBuilder: (_) => [
+                      if (invoice.status == 'draft')
+                        const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+                      if (invoice.status != 'paid')
+                        const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -217,6 +231,36 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         ],
       ),
     );
+  }
+
+  void _handleInvoiceAction(String action, Invoice invoice) {
+    switch (action) {
+      case 'send':
+        ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'sent'));
+        break;
+      case 'paid':
+        ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'paid', amountPaid: invoice.total));
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Invoice'),
+            content: const Text('Are you sure you want to delete this invoice?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  ref.read(invoicesProvider.notifier).deleteInvoice(invoice.id);
+                  Navigator.pop(ctx);
+                },
+                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 
   void _showCreateInvoiceDialog(BuildContext context) {

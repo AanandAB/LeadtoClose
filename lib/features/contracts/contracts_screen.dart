@@ -163,9 +163,52 @@ class _ContractsScreenState extends ConsumerState<ContractsScreen> {
               ],
             ],
           ),
+          PopupMenuButton<String>(
+            padding: EdgeInsets.zero,
+            icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+            onSelected: (v) => _handleContractAction(v, contract),
+            itemBuilder: (_) => [
+              if (contract.status == 'draft')
+                const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+              if (contract.status == 'sent')
+                const PopupMenuItem(value: 'sign', child: Text('Mark as Signed')),
+              const PopupMenuDivider(),
+              PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  void _handleContractAction(String action, Contract contract) {
+    switch (action) {
+      case 'send':
+        ref.read(contractsProvider.notifier).updateContract(contract.copyWith(status: 'sent'));
+        break;
+      case 'sign':
+        ref.read(contractsProvider.notifier).updateContract(contract.copyWith(status: 'active', signedAt: DateTime.now()));
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Contract'),
+            content: const Text('Are you sure you want to delete this contract?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  ref.read(contractsProvider.notifier).deleteContract(contract.id);
+                  Navigator.pop(ctx);
+                },
+                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 
   void _showCreateContractDialog(BuildContext context) {

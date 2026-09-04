@@ -219,10 +219,47 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
               ],
             ],
           ),
+          PopupMenuButton<String>(
+            padding: EdgeInsets.zero,
+            icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+            onSelected: (v) => _handleClientAction(v, client),
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              const PopupMenuDivider(),
+              PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+            ],
+          ),
         ],
       ),
     ),
     );
+  }
+
+  void _handleClientAction(String action, Client client) {
+    switch (action) {
+      case 'edit':
+        context.go('/client/${client.id}');
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Client'),
+            content: const Text('Are you sure you want to delete this client? This will also remove associated data.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  ref.read(clientsProvider.notifier).deleteClient(client.id);
+                  Navigator.pop(ctx);
+                },
+                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 
   void _showAddClientDialog(BuildContext context) {

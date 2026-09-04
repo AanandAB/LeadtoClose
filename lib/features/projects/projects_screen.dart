@@ -271,6 +271,20 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     : const SizedBox(),
               ),
               StatusChip(label: p.status.name, color: statusColor),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                onSelected: (v) => _handleProjectAction(v, p),
+                itemBuilder: (_) => [
+                  if (p.status != ProjectStatus.completed)
+                    const PopupMenuItem(value: 'complete', child: Text('Mark as Completed')),
+                  if (p.status != ProjectStatus.active)
+                    const PopupMenuItem(value: 'activate', child: Text('Mark as Active')),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                ],
+              ),
             ],
           ),
         );
@@ -341,5 +355,35 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         ],
       ),
     );
+  }
+
+  void _handleProjectAction(String action, Project project) {
+    switch (action) {
+      case 'complete':
+        ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.completed));
+        break;
+      case 'activate':
+        ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.active));
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Project'),
+            content: const Text('Are you sure you want to delete this project?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  ref.read(projectsProvider.notifier).deleteProject(project.id);
+                  Navigator.pop(ctx);
+                },
+                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 }

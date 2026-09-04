@@ -204,16 +204,70 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                 style: AppTypography.price(context).copyWith(fontSize: 16),
               ),
               const SizedBox(height: 4),
-              StatusChip(
-                label: quote.status,
-                color: statusColor,
-                isSmall: true,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatusChip(
+                    label: quote.status,
+                    color: statusColor,
+                    isSmall: true,
+                  ),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                    onSelected: (v) => _handleQuoteAction(v, quote),
+                    itemBuilder: (_) => [
+                      if (quote.status == 'draft')
+                        const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+                      if (quote.status == 'sent') ...[
+                        const PopupMenuItem(value: 'accept', child: Text('Mark as Accepted')),
+                        const PopupMenuItem(value: 'reject', child: Text('Mark as Rejected')),
+                      ],
+                      const PopupMenuDivider(),
+                      PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void _handleQuoteAction(String action, Quote quote) {
+    switch (action) {
+      case 'send':
+        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'sent'));
+        break;
+      case 'accept':
+        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'accepted'));
+        break;
+      case 'reject':
+        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'rejected'));
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Proposal'),
+            content: const Text('Are you sure you want to delete this proposal?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () {
+                  ref.read(quotesProvider.notifier).deleteQuote(quote.id);
+                  Navigator.pop(ctx);
+                },
+                child: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 
   void _showCreateProposalDialog(BuildContext context) {

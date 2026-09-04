@@ -246,7 +246,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       case 3:
         return _buildProposalsTab(quotes, client);
       case 4:
-        return _buildMessagesTab(comms);
+        return _buildMessagesTab(comms, client);
       default:
         return _buildOverviewTab(client, projects, invoices);
     }
@@ -459,7 +459,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _buildMessagesTab(List<Communication> comms) {
+  Widget _buildMessagesTab(List<Communication> comms, Client client) {
     if (comms.isEmpty) {
       return Center(
         child: EmptyState(
@@ -467,7 +467,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           title: 'No messages yet',
           subtitle: 'Start a conversation with this client',
           actionLabel: 'New Message',
-          onAction: () {},
+          onAction: () => _showComposeMessageDialog(context, client.id),
         ),
       );
     }
@@ -1004,6 +1004,87 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showComposeMessageDialog(BuildContext context, String clientId) {
+    String messageType = 'email';
+    final subjectCtrl = TextEditingController();
+    final bodyCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('New Message', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 420,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _msgTypeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
+                      const SizedBox(width: 8),
+                      _msgTypeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
+                      const SizedBox(width: 8),
+                      _msgTypeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: subjectCtrl,
+                    decoration: const InputDecoration(labelText: 'Subject'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: bodyCtrl,
+                    maxLines: 5,
+                    decoration: const InputDecoration(labelText: 'Message', hintText: 'Type your message...'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final comm = Communication(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  clientId: clientId,
+                  type: CommunicationType.values.firstWhere((e) => e.name == messageType, orElse: () => CommunicationType.email),
+                  subject: subjectCtrl.text.trim(),
+                  body: bodyCtrl.text.trim(),
+                );
+                ref.read(communicationsProvider.notifier).addCommunication(comm);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _msgTypeChip(String label, String value, String current, Function(String) onTap) {
+    final selected = current == value;
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.borderLight),
+        ),
+        child: Text(label, style: AppTypography.label(context).copyWith(
+          color: selected ? AppColors.primaryLight : AppColors.textMuted, fontSize: 11,
+        )),
       ),
     );
   }
