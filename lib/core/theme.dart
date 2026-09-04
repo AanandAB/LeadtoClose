@@ -312,6 +312,8 @@ class AppCurrency {
       case 'EUR': return '€';
       case 'GBP': return '£';
       case 'JPY': return '¥';
+      case 'AED': return 'د.إ';
+      case 'SAR': return '﷼';
       default: return '\$';
     }
   }
@@ -358,5 +360,5 @@ class AppCurrency {
     return '$symbol${value.toStringAsFixed(0)}';
   }
 
-  static List<String> get supportedCurrencies => ['INR', 'USD', 'EUR', 'GBP', 'JPY'];
+  static List<String> get supportedCurrencies => ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AED', 'SAR'];
 }

@@ -223,6 +223,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
             DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
             DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
+            DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
+            DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
             DropdownMenuItem(value: 'CAD', child: Text('CAD (\$)')),
           ],
           onChanged: (v) => setState(() => _currency = v!),

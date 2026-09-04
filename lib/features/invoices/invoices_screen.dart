@@ -316,8 +316,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                           items: const [
                             DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
                             DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
-                            DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
-                            DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
+                            DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),                            DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
+                            DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
+                            DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
                           ],
                           onChanged: (v) =>
                               setDialogState(() => selectedCurrency = v!),

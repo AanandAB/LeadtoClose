@@ -224,6 +224,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
         DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
         DropdownMenuItem(value: 'JPY', child: Text('JPY (¥)')),
+        DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
+        DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
         DropdownMenuItem(value: 'CAD', child: Text('CAD (\$)')),
         DropdownMenuItem(value: 'AUD', child: Text('AUD (\$)')),
       ],

@@ -793,6 +793,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             const DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
                             const DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
                             const DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
+                            const DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
+                            const DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
                           ],
                           onChanged: (v) => setDialogState(() => currency = v!),
                         ),
