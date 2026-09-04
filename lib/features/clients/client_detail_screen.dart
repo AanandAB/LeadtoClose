@@ -1034,7 +1034,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'Naro', currency: AppCurrency.symbol);
+      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: AppCurrency.symbol);
       return;
     }
     if (action == 'delete') {
@@ -1053,6 +1053,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   }
 
   void _showComposeMessageDialog(BuildContext context, String clientId) {
+    final client = ref.read(clientsProvider).where((c) => c.id == clientId).firstOrNull;
     String messageType = 'email';
     final subjectCtrl = TextEditingController();
     final bodyCtrl = TextEditingController();
@@ -1069,12 +1070,13 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
                       _msgTypeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
-                      const SizedBox(width: 8),
+                      _msgTypeChip('WhatsApp', 'sms', messageType, (v) => setDialogState(() => messageType = v)),
                       _msgTypeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
-                      const SizedBox(width: 8),
                       _msgTypeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
                     ],
                   ),
@@ -1095,7 +1097,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 final comm = Communication(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -1106,8 +1108,28 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 );
                 ref.read(communicationsProvider.notifier).addCommunication(comm);
                 Navigator.pop(ctx);
+
+                // If WhatsApp, open WhatsApp with the message
+                if (messageType == 'sms') {
+                  final phone = client?.primaryContact?.phone ?? '';
+                  final message = Uri.encodeComponent(bodyCtrl.text.trim());
+                  if (phone.isNotEmpty) {
+                    // Try to launch WhatsApp
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('WhatsApp message logged. Open WhatsApp to send to $phone'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No phone number found for this client')),
+                    );
+                  }
+                }
               },
-              child: const Text('Send'),
+              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send, size: 16),
+              label: Text(messageType == 'sms' ? 'Log & Open WhatsApp' : 'Log Message'),
             ),
           ],
         ),

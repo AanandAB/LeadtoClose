@@ -40,16 +40,16 @@ class AppSidebar extends ConsumerWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     image: const DecorationImage(
-                      image: AssetImage('assets/naro_logo.png'),
+                      image: AssetImage('assets/freelancehub_logo.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Naro',
+                  'FreelanceHub',
                   style: AppTypography.heading2(context).copyWith(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

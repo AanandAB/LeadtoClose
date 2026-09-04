@@ -229,14 +229,14 @@ class _CommunicationHubScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Message type
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
                       _typeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
-                      const SizedBox(width: 8),
+                      _typeChip('WhatsApp', 'sms', messageType, (v) => setDialogState(() => messageType = v)),
                       _typeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
-                      const SizedBox(width: 8),
                       _typeChip('Meeting', 'meeting', messageType, (v) => setDialogState(() => messageType = v)),
-                      const SizedBox(width: 8),
                       _typeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
                     ],
                   ),

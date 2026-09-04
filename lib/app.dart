@@ -4,8 +4,8 @@ import 'core/theme.dart';
 import 'core/router.dart';
 import 'providers.dart';
 
-class NaroApp extends ConsumerWidget {
-  const NaroApp({super.key});
+class FreelanceHubApp extends ConsumerWidget {
+  const FreelanceHubApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +17,7 @@ class NaroApp extends ConsumerWidget {
     AppCurrency.setCode(settings.currency.isNotEmpty ? settings.currency : 'INR');
 
     return MaterialApp.router(
-      title: 'Naro',
+      title: 'FreelanceHub',
       debugShowCheckedModeBanner: false,
       theme: settings.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
       routerConfig: router,

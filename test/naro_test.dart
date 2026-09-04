@@ -1,18 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:naro/models/lead.dart';
-import 'package:naro/models/client.dart';
-import 'package:naro/models/project.dart';
-import 'package:naro/models/task.dart';
-import 'package:naro/models/invoice.dart';
-import 'package:naro/models/quote.dart';
-import 'package:naro/models/contract.dart';
-import 'package:naro/models/time_entry.dart';
-import 'package:naro/models/communication.dart';
-import 'package:naro/models/event.dart';
-import 'package:naro/models/document.dart';
-import 'package:naro/models/app_settings.dart';
+import 'package:freelancehub/models/lead.dart';
+import 'package:freelancehub/models/client.dart';
+import 'package:freelancehub/models/project.dart';
+import 'package:freelancehub/models/task.dart';
+import 'package:freelancehub/models/invoice.dart';
+import 'package:freelancehub/models/quote.dart';
+import 'package:freelancehub/models/contract.dart';
+import 'package:freelancehub/models/time_entry.dart';
+import 'package:freelancehub/models/communication.dart';
+import 'package:freelancehub/models/event.dart';
+import 'package:freelancehub/models/document.dart';
+import 'package:freelancehub/models/app_settings.dart';
 import 'dart:ui';
-import 'package:naro/core/theme.dart';
+import 'package:freelancehub/core/theme.dart';
 
 void main() {
   group('AppCurrency', () {

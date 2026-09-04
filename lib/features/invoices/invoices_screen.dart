@@ -242,7 +242,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printInvoice(invoice, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'Naro', currency: AppCurrency.symbol);
+      PdfService.printInvoice(invoice, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: AppCurrency.symbol);
       return;
     }
     if (action == 'delete') {

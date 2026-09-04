@@ -167,7 +167,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // About
               _section('About'),
               const SizedBox(height: 12),
-              _aboutRow('Version', '2.0.0 (Naro CRM)'),
+              _aboutRow('Version', '2.0.0 (FreelanceHub)'),
               _aboutRow('Platform', 'Flutter — Cross-platform'),
               _aboutRow('Storage', 'Local (Hive) — data stays on your device'),
               const SizedBox(height: 32),

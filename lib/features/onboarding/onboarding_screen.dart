@@ -65,12 +65,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ],
                     ),                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.asset('assets/naro_logo.png', width: 32, height: 32, fit: BoxFit.cover),
+                        child: Image.asset('assets/freelancehub_logo.png', width: 32, height: 32, fit: BoxFit.cover),
                       ),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Welcome to Naro',
+                    'Welcome to FreelanceHub',
                     style: AppTypography.displayLarge(context),
                     textAlign: TextAlign.center,
                   ),

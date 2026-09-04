@@ -13,6 +13,6 @@ void main() async {
 
   runApp(ProviderScope(
     overrides: [storageServiceProvider.overrideWithValue(storage)],
-    child: const NaroApp(),
+    child: const FreelanceHubApp(),
   ));
 }
