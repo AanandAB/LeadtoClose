@@ -318,22 +318,9 @@ class AppCurrency {
 
   static String format(double amount) {
     if (_code == 'INR') {
-      // Indian number formatting: ₹1,23,456
-      final isNeg = amount < 0;
       final abs = amount.abs();
       final parts = abs.toStringAsFixed(0);
-      String formatted;
-      if (parts.length <= 3) {
-        formatted = parts;
-      } else {
-        final last3 = parts.substring(parts.length - 3);
-        final rest = parts.substring(0, parts.length - 3);
-        final grouped = rest.replaceAllMapped(
-          RegExp(r'(\d+?)(?=(\d{2})+\$)'),
-          (m) => '${m[1]},',
-        );
-        formatted = '$grouped,$last3';
-      }
+      final formatted = _indianCommaFormat(parts);
       return '$symbol$formatted';
     }
     return '$symbol${amount.toStringAsFixed(0)}';
@@ -341,26 +328,27 @@ class AppCurrency {
 
   static String formatDecimal(double amount) {
     if (_code == 'INR') {
-      final isNeg = amount < 0;
       final abs = amount.abs();
       final parts = abs.toStringAsFixed(2);
       final intPart = parts.split('.')[0];
       final decPart = parts.split('.')[1];
-      String formatted;
-      if (intPart.length <= 3) {
-        formatted = intPart;
-      } else {
-        final last3 = intPart.substring(intPart.length - 3);
-        final rest = intPart.substring(0, intPart.length - 3);
-        final grouped = rest.replaceAllMapped(
-          RegExp(r'(\d+?)(?=(\d{2})+\$)'),
-          (m) => '${m[1]},',
-        );
-        formatted = '$grouped,$last3';
-      }
+      final formatted = _indianCommaFormat(intPart);
       return '$symbol$formatted.$decPart';
     }
     return '$symbol${amount.toStringAsFixed(2)}';
+  }
+
+  static String _indianCommaFormat(String numberStr) {
+    if (numberStr.length <= 3) return numberStr;
+    final last3 = numberStr.substring(numberStr.length - 3);
+    final rest = numberStr.substring(0, numberStr.length - 3);
+    // Add commas every 2 digits for the rest
+    final buffer = StringBuffer();
+    for (int i = 0; i < rest.length; i++) {
+      if (i > 0 && (rest.length - i) % 2 == 0) buffer.write(',');
+      buffer.write(rest[i]);
+    }
+    return '$buffer,$last3';
   }
 
   static String formatCompact(double value) {

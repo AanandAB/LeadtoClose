@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/invoice.dart';
 import '../../providers.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/shared_widgets.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
@@ -216,6 +217,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                         const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
                       if (invoice.status != 'paid')
                         const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                      const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
                       const PopupMenuDivider(),
                       PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
                     ],
@@ -236,6 +238,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     }
     if (action == 'paid') {
       ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(status: 'paid', amountPaid: invoice.total));
+      return;
+    }
+    if (action == 'print') {
+      final settings = ref.read(settingsProvider);
+      PdfService.printInvoice(invoice, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'Naro', currency: AppCurrency.symbol);
       return;
     }
     if (action == 'delete') {

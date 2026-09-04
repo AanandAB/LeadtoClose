@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../models/quote.dart';
 import '../../models/client.dart';
 import '../../providers.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/shared_widgets.dart';
 
 class ProposalsScreen extends ConsumerStatefulWidget {
@@ -224,6 +225,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                         const PopupMenuItem(value: 'accept', child: Text('Mark as Accepted')),
                         const PopupMenuItem(value: 'reject', child: Text('Mark as Rejected')),
                       ],
+                      const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
                       const PopupMenuDivider(),
                       PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
                     ],
@@ -248,6 +250,11 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
     }
     if (action == 'reject') {
       ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'rejected'));
+      return;
+    }
+    if (action == 'print') {
+      final settings = ref.read(settingsProvider);
+      PdfService.printProposal(quote, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'Naro', currency: AppCurrency.symbol);
       return;
     }
     if (action == 'delete') {
