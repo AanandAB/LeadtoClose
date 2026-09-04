@@ -357,33 +357,27 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _handleProjectAction(String action, Project project) async {
-    switch (action) {
-      case 'complete':
-        ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.completed));
-        break;
-      case 'activate':
-        ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.active));
-        break;
-      case 'delete':
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogCtx) => AlertDialog(
-            title: const Text('Delete Project'),
-            content: const Text('Are you sure you want to delete this project? This cannot be undone.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(dialogCtx).pop(false), child: const Text('Cancel')),
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(true),
-                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
-              ),
-            ],
+  void _handleProjectAction(String action, Project project) {
+    if (action == 'complete') {
+      ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.completed));
+      return;
+    }
+    if (action == 'activate') {
+      ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.active));
+      return;
+    }
+    if (action == 'delete') {
+      ref.read(projectsProvider.notifier).deleteProject(project.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Project deleted'),
+            action: SnackBarAction(label: 'Undo', onPressed: () {
+              ref.read(projectsProvider.notifier).addProject(project);
+            }),
           ),
         );
-        if (confirmed == true && mounted) {
-          await ref.read(projectsProvider.notifier).deleteProject(project.id);
-        }
-        break;
+      }
     }
   }
 }

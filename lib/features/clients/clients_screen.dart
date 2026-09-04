@@ -235,30 +235,23 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
     );
   }
 
-  void _handleClientAction(String action, Client client) async {
-    switch (action) {
-      case 'edit':
-        context.go('/client/${client.id}');
-        break;
-      case 'delete':
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogCtx) => AlertDialog(
-            title: const Text('Delete Client'),
-            content: const Text('Are you sure you want to delete this client? This will also remove associated data.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(dialogCtx).pop(false), child: const Text('Cancel')),
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(true),
-                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
-              ),
-            ],
+  void _handleClientAction(String action, Client client) {
+    if (action == 'edit') {
+      context.go('/client/${client.id}');
+      return;
+    }
+    if (action == 'delete') {
+      ref.read(clientsProvider.notifier).deleteClient(client.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Client deleted'),
+            action: SnackBarAction(label: 'Undo', onPressed: () {
+              ref.read(clientsProvider.notifier).addClient(client);
+            }),
           ),
         );
-        if (confirmed == true && mounted) {
-          await ref.read(clientsProvider.notifier).deleteClient(client.id);
-        }
-        break;
+      }
     }
   }
 

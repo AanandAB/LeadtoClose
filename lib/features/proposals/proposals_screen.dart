@@ -238,38 +238,33 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
   }
 
   void _handleQuoteAction(String action, Quote quote) async {
-    switch (action) {
-      case 'send':
-        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'sent'));
-        break;
-      case 'accept':
-        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'accepted'));
-        break;
-      case 'reject':
-        ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'rejected'));
-        break;
-      case 'delete':
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogCtx) => AlertDialog(
-            title: const Text('Delete Proposal'),
-            content: const Text('Are you sure you want to delete this proposal? This cannot be undone.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(true),
-                child: Text('Delete', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
-              ),
-            ],
+    if (action == 'send') {
+      ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'sent'));
+      return;
+    }
+    if (action == 'accept') {
+      ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'accepted'));
+      return;
+    }
+    if (action == 'reject') {
+      ref.read(quotesProvider.notifier).updateQuote(quote.copyWith(status: 'rejected'));
+      return;
+    }
+    if (action == 'delete') {
+      ref.read(quotesProvider.notifier).deleteQuote(quote.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Proposal deleted'),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () {
+                ref.read(quotesProvider.notifier).addQuote(quote);
+              },
+            ),
           ),
         );
-        if (confirmed == true && mounted) {
-          await ref.read(quotesProvider.notifier).deleteQuote(quote.id);
-        }
-        break;
+      }
     }
   }
 
