@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/project.dart';
+import '../../models/process_step.dart';
 import '../../models/task.dart';
 import '../../models/invoice.dart';
 import '../../providers.dart';
@@ -28,15 +29,27 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     if (project == null) {
       return Scaffold(
-        body: Center(child: Text('Project not found', style: AppTypography.body(context))),
+        body: Center(
+            child:
+                Text('Project not found', style: AppTypography.body(context))),
       );
     }
 
-    final tasks = ref.watch(tasksProvider).where((t) => t.projectId == project.id).toList();
-    final timeEntries = ref.watch(timeEntriesProvider).where((t) => t.projectId == project.id).toList();
-    final projectInvoices = ref.watch(invoicesProvider).where((i) => i.clientId == project.clientId).toList();
+    final tasks = ref
+        .watch(tasksProvider)
+        .where((t) => t.projectId == project.id)
+        .toList();
+    final timeEntries = ref
+        .watch(timeEntriesProvider)
+        .where((t) => t.projectId == project.id)
+        .toList();
+    final projectInvoices = ref
+        .watch(invoicesProvider)
+        .where((i) => i.clientId == project.clientId)
+        .toList();
     final totalHours = timeEntries.fold(0.0, (s, e) => s + e.hours);
-    final billableHours = timeEntries.where((e) => e.isBillable).fold(0.0, (s, e) => s + e.hours);
+    final billableHours =
+        timeEntries.where((e) => e.isBillable).fold(0.0, (s, e) => s + e.hours);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,8 +61,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(project.name, style: AppTypography.heading2(context)),
-            Text(project.description.isNotEmpty ? project.description : 'No description',
-                style: AppTypography.bodySmall(context), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+                project.description.isNotEmpty
+                    ? project.description
+                    : 'No description',
+                style: AppTypography.bodySmall(context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
           ],
         ),
         actions: [
@@ -84,17 +102,26 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               children: [
                 // Stats bar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.bgMid,
-                    border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+                    border: Border(
+                        bottom: BorderSide(color: AppColors.borderLight)),
                   ),
                   child: Row(
                     children: [
                       _statPill('Tasks', '${tasks.length}', AppColors.info),
-                      _statPill('Done', '${tasks.where((t) => t.status == TaskStatus.done).length}', AppColors.success),
-                      _statPill('Hours', '${totalHours.toStringAsFixed(1)}h', AppColors.primary),
-                      _statPill('Billable', '${billableHours.toStringAsFixed(1)}h', AppColors.success),
+                      _statPill(
+                          'Done',
+                          '${tasks.where((t) => t.status == TaskStatus.done).length}',
+                          AppColors.success),
+                      _statPill('Hours', '${totalHours.toStringAsFixed(1)}h',
+                          AppColors.primary),
+                      _statPill(
+                          'Billable',
+                          '${billableHours.toStringAsFixed(1)}h',
+                          AppColors.success),
                       if (project.budget > 0) ...[
                         const SizedBox(width: 16),
                         Expanded(
@@ -103,10 +130,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text('${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
+                                  Text(
+                                      '${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
                                       style: AppTypography.caption(context)),
                                   const Spacer(),
-                                  Text('${project.budgetPercentage.toStringAsFixed(0)}%',
+                                  Text(
+                                      '${project.budgetPercentage.toStringAsFixed(0)}%',
                                       style: AppTypography.caption(context)),
                                 ],
                               ),
@@ -114,11 +143,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(3),
                                 child: LinearProgressIndicator(
-                                  value: (project.spent / project.budget).clamp(0.0, 1.0),
+                                  value: (project.spent / project.budget)
+                                      .clamp(0.0, 1.0),
                                   minHeight: 4,
                                   backgroundColor: AppColors.bgSurface,
                                   valueColor: AlwaysStoppedAnimation(
-                                    project.budgetPercentage > 90 ? AppColors.danger : AppColors.primary,
+                                    project.budgetPercentage > 90
+                                        ? AppColors.danger
+                                        : AppColors.primary,
                                   ),
                                 ),
                               ),
@@ -130,9 +162,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   ),
                 ),
 
+                // 11-Step process tracker
+                _buildProcessTracker(project),
+
                 // Task board
                 Expanded(
-                  child: _view == 'kanban' ? _buildKanban(tasks) : _buildList(tasks, project.id),
+                  child: _view == 'kanban'
+                      ? _buildKanban(tasks)
+                      : _buildList(tasks, project.id),
                 ),
               ],
             ),
@@ -148,16 +185,20 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('Project Info', style: AppTypography.label(context).copyWith(
-                  color: AppColors.textMuted, letterSpacing: 0.5,
-                )),
+                Text('Project Info',
+                    style: AppTypography.label(context).copyWith(
+                      color: AppColors.textMuted,
+                      letterSpacing: 0.5,
+                    )),
                 const SizedBox(height: 12),
                 _infoRow('Status', project.status.name),
                 _infoRow('Priority', project.priority),
                 if (project.dueDate != null)
-                  _infoRow('Due Date', DateFormat('MMM d, yyyy').format(project.dueDate!)),
+                  _infoRow('Due Date',
+                      DateFormat('MMM d, yyyy').format(project.dueDate!)),
                 if (project.startDate != null)
-                  _infoRow('Start Date', DateFormat('MMM d, yyyy').format(project.startDate!)),
+                  _infoRow('Start Date',
+                      DateFormat('MMM d, yyyy').format(project.startDate!)),
                 if (project.budget > 0) ...[
                   _infoRow('Budget', AppCurrency.format(project.budget)),
                   _infoRow('Spent', AppCurrency.format(project.spent)),
@@ -177,51 +218,132 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 const SizedBox(height: 16),
 
                 // Milestones placeholder
-                Text('Milestones', style: AppTypography.label(context).copyWith(
-                  color: AppColors.textMuted, letterSpacing: 0.5,
-                )),
+                Text('Milestones',
+                    style: AppTypography.label(context).copyWith(
+                      color: AppColors.textMuted,
+                      letterSpacing: 0.5,
+                    )),
                 const SizedBox(height: 8),
-                Text('No milestones yet', style: AppTypography.bodySmall(context)),
+                Text('No milestones yet',
+                    style: AppTypography.bodySmall(context)),
                 const SizedBox(height: 20),
 
                 // Invoices section
                 Row(
                   children: [
-                    Text('Invoices', style: AppTypography.label(context).copyWith(
-                      color: AppColors.textMuted, letterSpacing: 0.5,
-                    )),
+                    Text('Invoices',
+                        style: AppTypography.label(context).copyWith(
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.5,
+                        )),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () => _showCreateInvoiceForProject(context, project),
-                      child: Icon(Icons.add_circle_outline, size: 16, color: AppColors.primary),
+                      onTap: () =>
+                          _showCreateInvoiceForProject(context, project),
+                      child: Icon(Icons.add_circle_outline,
+                          size: 16, color: AppColors.primary),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 if (projectInvoices.isEmpty)
-                  Text('No invoices yet', style: AppTypography.bodySmall(context)),
+                  Text('No invoices yet',
+                      style: AppTypography.bodySmall(context)),
                 ...projectInvoices.map((inv) => Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.receipt_long, size: 14, color: AppTheme.statusColor(inv.status)),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(inv.number, style: AppTypography.bodySmall(context))),
-                      Text(AppCurrency.formatFor(inv.currency, inv.total), style: AppTypography.label(context).copyWith(fontSize: 11)),
-                    ],
-                  ),
-                )),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.receipt_long,
+                              size: 14,
+                              color: AppTheme.statusColor(inv.status)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                              child: Text(inv.number,
+                                  style: AppTypography.bodySmall(context))),
+                          Text(AppCurrency.formatFor(inv.currency, inv.total),
+                              style: AppTypography.label(context)
+                                  .copyWith(fontSize: 11)),
+                        ],
+                      ),
+                    )),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildProcessTracker(Project project) {
+    final current = ProcessStepX.fromIndex(project.step);
+    final total = ProcessStepX.total;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.flag_outlined, size: 16, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Text('Step ${current.number} of $total',
+              style: AppTypography.label(context)
+                  .copyWith(color: AppColors.primary)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(current.label,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    )),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: (project.step + 1) / total,
+                    minHeight: 5,
+                    backgroundColor: AppColors.bgSurface,
+                    valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_left_rounded, size: 20),
+            tooltip: 'Previous step',
+            onPressed: project.step > 0
+                ? () => _setStep(project, project.step - 1)
+                : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right_rounded, size: 20),
+            tooltip: 'Next step',
+            onPressed: project.step < total - 1
+                ? () => _setStep(project, project.step + 1)
+                : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _setStep(Project project, int step) {
+    ref
+        .read(projectsProvider.notifier)
+        .updateProject(project.copyWith(step: step));
+    // Push the updated step to the portal right away (best-effort).
+    ref.read(portalSyncProvider).syncNow();
   }
 
   Widget _viewBtn(String view, IconData icon) {
@@ -231,10 +353,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+          color: selected
+              ? AppColors.primary.withOpacity(0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Icon(icon, size: 16, color: selected ? AppColors.primaryLight : AppColors.textMuted),
+        child: Icon(icon,
+            size: 16,
+            color: selected ? AppColors.primaryLight : AppColors.textMuted),
       ),
     );
   }
@@ -245,7 +371,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       child: Row(
         children: [
           Text('$label: ', style: AppTypography.caption(context)),
-          Text(value, style: AppTypography.label(context).copyWith(color: color)),
+          Text(value,
+              style: AppTypography.label(context).copyWith(color: color)),
         ],
       ),
     );
@@ -272,17 +399,21 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: s.$3.withOpacity(0.08),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(10)),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 8, height: 8,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: s.$3),
+                        width: 8,
+                        height: 8,
+                        decoration:
+                            BoxDecoration(shape: BoxShape.circle, color: s.$3),
                       ),
                       const SizedBox(width: 8),
                       Text('${s.$2} (${columnTasks.length})',
-                          style: AppTypography.label(context).copyWith(color: s.$3)),
+                          style: AppTypography.label(context)
+                              .copyWith(color: s.$3)),
                     ],
                   ),
                 ),
@@ -291,14 +422,18 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: AppColors.bgDeep,
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+                      borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(10)),
                       border: Border.all(color: AppColors.borderLight),
                     ),
                     child: columnTasks.isEmpty
-                        ? Center(child: Text('No tasks', style: AppTypography.bodySmall(context)))
+                        ? Center(
+                            child: Text('No tasks',
+                                style: AppTypography.bodySmall(context)))
                         : ListView.builder(
                             itemCount: columnTasks.length,
-                            itemBuilder: (context, i) => _buildTaskCard(columnTasks[i]),
+                            itemBuilder: (context, i) =>
+                                _buildTaskCard(columnTasks[i]),
                           ),
                   ),
                 ),
@@ -349,14 +484,21 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             Row(
               children: [
                 Container(
-                  width: 4, height: 4,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: priorityColor),
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle, color: priorityColor),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(task.title, style: AppTypography.body(context).copyWith(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 12,
-                  ), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  child: Text(task.title,
+                      style: AppTypography.body(context).copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
@@ -364,7 +506,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 10, color: task.isOverdue ? AppColors.danger : AppColors.textMuted),
+                  Icon(Icons.calendar_today,
+                      size: 10,
+                      color: task.isOverdue
+                          ? AppColors.danger
+                          : AppColors.textMuted),
                   const SizedBox(width: 4),
                   Text(DateFormat('MMM d').format(task.dueDate!),
                       style: AppTypography.caption(context).copyWith(
@@ -402,14 +548,19 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   );
             },
             child: Container(
-              width: 22, height: 22,
+              width: 22,
+              height: 22,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: task.status == TaskStatus.done ? AppColors.success : AppColors.textMuted,
+                  color: task.status == TaskStatus.done
+                      ? AppColors.success
+                      : AppColors.textMuted,
                   width: 2,
                 ),
-                color: task.status == TaskStatus.done ? AppColors.success : Colors.transparent,
+                color: task.status == TaskStatus.done
+                    ? AppColors.success
+                    : Colors.transparent,
               ),
               child: task.status == TaskStatus.done
                   ? const Icon(Icons.check, size: 14, color: Colors.white)
@@ -423,13 +574,21 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(task.title, style: AppTypography.body(context).copyWith(
-                  color: task.status == TaskStatus.done ? AppColors.textMuted : AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                  decoration: task.status == TaskStatus.done ? TextDecoration.lineThrough : null,
-                )),
+                Text(task.title,
+                    style: AppTypography.body(context).copyWith(
+                      color: task.status == TaskStatus.done
+                          ? AppColors.textMuted
+                          : AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                      decoration: task.status == TaskStatus.done
+                          ? TextDecoration.lineThrough
+                          : null,
+                    )),
                 if (task.description.isNotEmpty)
-                  Text(task.description, style: AppTypography.bodySmall(context), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(task.description,
+                      style: AppTypography.bodySmall(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -454,16 +613,23 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ref.read(tasksProvider.notifier).deleteTask(task.id);
               } else {
                 final status = TaskStatus.values.firstWhere((s) => s.name == v);
-                ref.read(tasksProvider.notifier).updateTask(task.copyWith(status: status));
+                ref
+                    .read(tasksProvider.notifier)
+                    .updateTask(task.copyWith(status: status));
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'todo', child: Text('Move to To Do')),
-              const PopupMenuItem(value: 'inProgress', child: Text('Move to In Progress')),
-              const PopupMenuItem(value: 'review', child: Text('Move to Review')),
+              const PopupMenuItem(
+                  value: 'inProgress', child: Text('Move to In Progress')),
+              const PopupMenuItem(
+                  value: 'review', child: Text('Move to Review')),
               const PopupMenuItem(value: 'done', child: Text('Mark Done')),
               const PopupMenuDivider(),
-              PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+              PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete',
+                      style: TextStyle(color: AppColors.danger))),
             ],
             child: Icon(Icons.more_horiz, size: 16, color: AppColors.textMuted),
           ),
@@ -474,10 +640,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
   TaskStatus _nextStatus(TaskStatus current) {
     switch (current) {
-      case TaskStatus.todo: return TaskStatus.inProgress;
-      case TaskStatus.inProgress: return TaskStatus.review;
-      case TaskStatus.review: return TaskStatus.done;
-      case TaskStatus.done: return TaskStatus.todo;
+      case TaskStatus.todo:
+        return TaskStatus.inProgress;
+      case TaskStatus.inProgress:
+        return TaskStatus.review;
+      case TaskStatus.review:
+        return TaskStatus.done;
+      case TaskStatus.done:
+        return TaskStatus.todo;
     }
   }
 
@@ -534,7 +704,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (titleCtrl.text.trim().isEmpty) return;
@@ -561,10 +732,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: AppTypography.caption(context))),
-          Expanded(child: Text(value, style: AppTypography.body(context).copyWith(
-            color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 13,
-          ))),
+          SizedBox(
+              width: 80,
+              child: Text(label, style: AppTypography.caption(context))),
+          Expanded(
+              child: Text(value,
+                  style: AppTypography.body(context).copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ))),
         ],
       ),
     );
@@ -578,7 +755,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('New Invoice for ${project.name}', style: AppTypography.heading2(context)),
+        title: Text('New Invoice for ${project.name}',
+            style: AppTypography.heading2(context)),
         content: SizedBox(
           width: 380,
           child: Column(
@@ -586,31 +764,45 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             children: [
               TextField(
                 controller: descCtrl,
-                decoration: const InputDecoration(labelText: 'Description', prefixIcon: Icon(Icons.description_outlined, size: 20)),
+                decoration: const InputDecoration(
+                    labelText: 'Description',
+                    prefixIcon: Icon(Icons.description_outlined, size: 20)),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: priceCtrl,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: 'Amount', prefixText: AppCurrency.symbol, prefixIcon: const Icon(Icons.attach_money, size: 20)),
+                decoration: InputDecoration(
+                    labelText: 'Amount',
+                    prefixText: AppCurrency.symbol,
+                    prefixIcon: const Icon(Icons.attach_money, size: 20)),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (descCtrl.text.trim().isEmpty) return;
               final amount = double.tryParse(priceCtrl.text) ?? 0;
               final invoice = Invoice(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
-                number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                number:
+                    'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                 clientId: project.clientId,
                 projectId: project.id,
                 status: 'active',
-                lineItems: [InvoiceLineItem(description: descCtrl.text.trim(), quantity: 1, rate: amount)],
-                subtotal: amount, total: amount, currency: currency,
+                lineItems: [
+                  InvoiceLineItem(
+                      description: descCtrl.text.trim(),
+                      quantity: 1,
+                      rate: amount)
+                ],
+                subtotal: amount,
+                total: amount,
+                currency: currency,
                 paymentTerms: 'Net 30',
                 dueDate: DateTime.now().add(const Duration(days: 30)),
               );

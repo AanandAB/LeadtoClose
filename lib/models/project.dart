@@ -16,6 +16,7 @@ class Project {
   final DateTime? completedDate;
   final List<String> tags;
   final String templateId;
+  final int step;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -33,6 +34,7 @@ class Project {
     this.completedDate,
     this.tags = const [],
     this.templateId = '',
+    this.step = 0,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -57,6 +59,7 @@ class Project {
     DateTime? dueDate,
     DateTime? completedDate,
     List<String>? tags,
+    int? step,
     DateTime? updatedAt,
   }) {
     return Project(
@@ -73,6 +76,7 @@ class Project {
       completedDate: completedDate ?? this.completedDate,
       tags: tags ?? this.tags,
       templateId: templateId,
+      step: step ?? this.step,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -92,6 +96,7 @@ class Project {
         'completedDate': completedDate?.toIso8601String(),
         'tags': tags,
         'templateId': templateId,
+        'step': step,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
       };
@@ -114,6 +119,7 @@ class Project {
             DateTime.tryParse(json['completedDate']?.toString() ?? ''),
         tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
         templateId: json['templateId']?.toString() ?? '',
+        step: (json['step'] as num?)?.toInt() ?? 0,
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
             DateTime.now(),
         updatedAt: DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
@@ -150,13 +156,13 @@ class ProjectTemplate {
         name: json['name']?.toString() ?? '',
         description: json['description']?.toString() ?? '',
         tasks: (json['tasks'] as List?)
-                ?.map((t) =>
-                    TaskTemplate.fromJson(Map<String, dynamic>.from(t)))
+                ?.map(
+                    (t) => TaskTemplate.fromJson(Map<String, dynamic>.from(t)))
                 .toList() ??
             [],
         milestones: (json['milestones'] as List?)
-                ?.map((m) => MilestoneTemplate.fromJson(
-                    Map<String, dynamic>.from(m)))
+                ?.map((m) =>
+                    MilestoneTemplate.fromJson(Map<String, dynamic>.from(m)))
                 .toList() ??
             [],
       );

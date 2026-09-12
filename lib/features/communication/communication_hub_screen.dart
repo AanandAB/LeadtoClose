@@ -24,9 +24,7 @@ class _CommunicationHubScreenState
     final communications = ref.watch(communicationsProvider);
     final filtered = _typeFilter == 'all'
         ? communications
-        : communications
-            .where((c) => c.type.name == _typeFilter)
-            .toList();
+        : communications.where((c) => c.type.name == _typeFilter).toList();
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -35,8 +33,7 @@ class _CommunicationHubScreenState
         children: [
           Row(
             children: [
-              Text('Messages',
-                  style: AppTypography.displayMedium(context)),
+              Text('Messages', style: AppTypography.displayMedium(context)),
               const Spacer(),
               ElevatedButton.icon(
                 onPressed: () => _showComposeDialog(context),
@@ -67,8 +64,7 @@ class _CommunicationHubScreenState
                   )
                 : ListView.builder(
                     itemCount: filtered.length,
-                    itemBuilder: (context, i) =>
-                        _buildMessageCard(filtered[i]),
+                    itemBuilder: (context, i) => _buildMessageCard(filtered[i]),
                   ),
           ),
         ],
@@ -83,22 +79,18 @@ class _CommunicationHubScreenState
       child: GestureDetector(
         onTap: () => setState(() => _typeFilter = value),
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.primary.withOpacity(0.15)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-                color:
-                    selected ? AppColors.primary : AppColors.borderLight),
+                color: selected ? AppColors.primary : AppColors.borderLight),
           ),
           child: Text(label,
               style: AppTypography.label(context).copyWith(
-                color: selected
-                    ? AppColors.primaryLight
-                    : AppColors.textMuted,
+                color: selected ? AppColors.primaryLight : AppColors.textMuted,
                 fontSize: 12,
               )),
         ),
@@ -164,8 +156,7 @@ class _CommunicationHubScreenState
                   children: [
                     Text(comm.type.name.toUpperCase(),
                         style: AppTypography.caption(context).copyWith(
-                            color: color,
-                            fontWeight: FontWeight.w700)),
+                            color: color, fontWeight: FontWeight.w700)),
                     if (comm.isInternal) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -202,8 +193,88 @@ class _CommunicationHubScreenState
               ],
             ),
           ),
+          if (comm.direction == 'inbound' &&
+              comm.contactEmail.isNotEmpty &&
+              comm.projectId.isNotEmpty)
+            IconButton(
+              icon:
+                  Icon(Icons.reply_rounded, size: 16, color: AppColors.primary),
+              tooltip: 'Reply via Client Portal',
+              onPressed: () => _showReplyDialog(comm),
+            ),
           Text(DateFormat('MMM d').format(comm.createdAt),
               style: AppTypography.caption(context)),
+        ],
+      ),
+    );
+  }
+
+  void _showReplyDialog(Communication comm) {
+    final replyCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Reply via Client Portal',
+            style: AppTypography.heading2(context)),
+        content: SizedBox(
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('To: ${comm.contactEmail}',
+                  style: AppTypography.bodySmall(context)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: replyCtrl,
+                maxLines: 5,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  hintText: 'Type your reply...',
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.send, size: 16),
+            label: const Text('Send to Client'),
+            onPressed: () async {
+              final text = replyCtrl.text.trim();
+              if (text.isEmpty) return;
+              Navigator.pop(ctx);
+              final ok = await ref.read(portalSyncProvider).sendPortalReply(
+                    projectId: comm.projectId,
+                    clientEmail: comm.contactEmail,
+                    text: text,
+                  );
+              ref.read(communicationsProvider.notifier).addCommunication(
+                    Communication(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      clientId: comm.clientId,
+                      projectId: comm.projectId,
+                      type: CommunicationType.note,
+                      direction: 'outbound',
+                      subject: 'Portal reply',
+                      body: text,
+                      contactEmail: comm.contactEmail,
+                    ),
+                  );
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(ok
+                      ? 'Reply sent to the client portal'
+                      : 'Reply failed — is portal sync configured?'),
+                  backgroundColor: ok ? AppColors.success : AppColors.danger,
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -220,8 +291,7 @@ class _CommunicationHubScreenState
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title:
-              Text('New Message', style: AppTypography.heading2(context)),
+          title: Text('New Message', style: AppTypography.heading2(context)),
           content: SizedBox(
             width: 480,
             height: 400,
@@ -234,11 +304,16 @@ class _CommunicationHubScreenState
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _typeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
-                      _typeChip('WhatsApp', 'sms', messageType, (v) => setDialogState(() => messageType = v)),
-                      _typeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
-                      _typeChip('Meeting', 'meeting', messageType, (v) => setDialogState(() => messageType = v)),
-                      _typeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
+                      _typeChip('Email', 'email', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _typeChip('WhatsApp', 'sms', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _typeChip('Call', 'call', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _typeChip('Meeting', 'meeting', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _typeChip('Note', 'note', messageType,
+                          (v) => setDialogState(() => messageType = v)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -294,13 +369,11 @@ class _CommunicationHubScreenState
                     children: [
                       Switch(
                         value: isInternal,
-                        onChanged: (v) =>
-                            setDialogState(() => isInternal = v),
+                        onChanged: (v) => setDialogState(() => isInternal = v),
                         activeColor: AppColors.warning,
                       ),
                       const SizedBox(width: 8),
-                      Text('Internal note',
-                          style: AppTypography.body(context)),
+                      Text('Internal note', style: AppTypography.body(context)),
                     ],
                   ),
                 ],
@@ -334,28 +407,39 @@ class _CommunicationHubScreenState
                 // If WhatsApp, open WhatsApp with the pre-written message
                 if (messageType == 'sms' && selectedClientId != null) {
                   final clients = ref.read(clientsProvider);
-                  final client = clients.where((c) => c.id == selectedClientId).firstOrNull;
-                  final phone = (client?.primaryContact?.phone ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
+                  final client = clients
+                      .where((c) => c.id == selectedClientId)
+                      .firstOrNull;
+                  final phone = (client?.primaryContact?.phone ?? '')
+                      .replaceAll(RegExp(r'[^0-9+]'), '');
                   final message = Uri.encodeComponent(bodyCtrl.text.trim());
                   if (phone.isNotEmpty) {
-                    final waUrl = Uri.parse('https://wa.me/$phone?text=$message');
-                    launchUrl(waUrl, mode: LaunchMode.externalApplication).catchError((_) {
+                    final waUrl =
+                        Uri.parse('https://wa.me/$phone?text=$message');
+                    launchUrl(waUrl, mode: LaunchMode.externalApplication)
+                        .catchError((_) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not open WhatsApp. Make sure WhatsApp is installed.')),
+                          const SnackBar(
+                              content: Text(
+                                  'Could not open WhatsApp. Make sure WhatsApp is installed.')),
                         );
                       }
                       return false;
                     });
                   } else if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No phone number found for this client. Add a phone number first.')),
+                      const SnackBar(
+                          content: Text(
+                              'No phone number found for this client. Add a phone number first.')),
                     );
                   }
                 }
               },
-              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send, size: 16),
-              label: Text(messageType == 'sms' ? 'Log & Open WhatsApp' : 'Send'),
+              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send,
+                  size: 16),
+              label:
+                  Text(messageType == 'sms' ? 'Log & Open WhatsApp' : 'Send'),
             ),
           ],
         ),
@@ -380,9 +464,7 @@ class _CommunicationHubScreenState
         ),
         child: Text(label,
             style: AppTypography.label(context).copyWith(
-              color: selected
-                  ? AppColors.primaryLight
-                  : AppColors.textMuted,
+              color: selected ? AppColors.primaryLight : AppColors.textMuted,
               fontSize: 11,
             )),
       ),

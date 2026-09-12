@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/client.dart';
 import '../models/project.dart';
+import '../models/process_step.dart';
 
 /// Configuration for pushing CRM data (clients/projects/milestones) up to the
 /// Bitnexel client portal worker (`POST /api/portal/sync`).
@@ -121,6 +122,8 @@ class PortalSyncService {
                 'status': p.status.name,
                 'stage': _stageForStatus(p.status),
                 'summary': p.description.isNotEmpty ? p.description : p.name,
+                'step': p.step,
+                'total_steps': ProcessStepX.total,
                 'created_at': p.createdAt.toIso8601String(),
               },
         ],
@@ -175,6 +178,38 @@ class PortalSyncService {
     }
   }
 
+  /// Pushes a studio reply to the portal so it appears in the client's message
+  /// thread (`POST /api/portal/reply`, token-authed).
+  Future<bool> sendPortalReply({
+    required String projectId,
+    required String clientEmail,
+    required String text,
+  }) async {
+    final config = _config;
+    if (config == null || !config.isValid) return false;
+    try {
+      final res = await _client
+          .post(
+            Uri.parse(
+                '${config.baseUrl.replaceAll(RegExp(r'/+$'), '')}/api/portal/reply'),
+            headers: {
+              'Authorization': 'Bearer ${config.token}',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'project_id': projectId,
+              'client_email': clientEmail,
+              'text': text,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// The best contact for portal identity: the contact flagged primary (with an
   /// email), otherwise the first contact that has an email.
   Contact? _primaryContact(Client c) {
@@ -187,7 +222,8 @@ class PortalSyncService {
     return null;
   }
 
-  String _primaryEmail(Client c) => _primaryContact(c)?.email.trim().toLowerCase() ?? '';
+  String _primaryEmail(Client c) =>
+      _primaryContact(c)?.email.trim().toLowerCase() ?? '';
 
   String _stageForStatus(ProjectStatus status) {
     switch (status) {
