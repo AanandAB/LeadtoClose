@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../core/glass.dart';
 import '../../core/theme.dart';
 import '../../models/project.dart';
 import '../../models/process_step.dart';
@@ -418,9 +417,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         // Progress header
-        GlassContainer(
+        Container(
           padding: const EdgeInsets.all(14),
-          borderRadius: 10,
+          decoration: BoxDecoration(
+            color: AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.borderLight),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -467,10 +470,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           final items = phase.items;
           final doneCount =
               items.where((i) => instance.checked[i.id] == true).length;
-          return GlassContainer(
+          return Container(
             margin: const EdgeInsets.only(bottom: 8),
-            borderRadius: 10,
-            blur: 16,
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderLight),
+            ),
             child: Theme(
               data:
                   Theme.of(context).copyWith(dividerColor: Colors.transparent),
