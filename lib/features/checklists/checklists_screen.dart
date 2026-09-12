@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/glass.dart';
 import '../../core/theme.dart';
 import '../../models/lifecycle_checklist.dart';
 import '../../providers.dart';
@@ -26,7 +27,8 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lifecycle Checklists', style: AppTypography.heading2(context)),
+        title: Text('Lifecycle Checklists',
+            style: AppTypography.heading2(context)),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -68,13 +70,9 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
 
   // ── Track switcher ────────────────────────────────────────────────────────
   Widget _trackSwitcher() {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+      borderRadius: 14,
       child: Row(
         children: ChecklistTrack.values.map((track) {
           final selected = track == _selectedTrack;
@@ -89,7 +87,9 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.primary.withOpacity(0.16) : Colors.transparent,
+                  color: selected
+                      ? AppColors.primary.withOpacity(0.16)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: selected
                       ? Border.all(color: AppColors.primary.withOpacity(0.5))
@@ -102,13 +102,18 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
                       children: [
                         Icon(_trackIcon(track),
                             size: 16,
-                            color: selected ? AppColors.primaryLight : AppColors.textMuted),
+                            color: selected
+                                ? AppColors.primaryLight
+                                : AppColors.textMuted),
                         const SizedBox(width: 8),
                         Text(
                           track.label,
                           style: AppTypography.body(context).copyWith(
-                            color: selected ? AppColors.textPrimary : AppColors.textSecondary,
-                            fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                            color: selected
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w400,
                           ),
                         ),
                       ],
@@ -138,12 +143,8 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
   Widget _instanceList(List<ChecklistInstance> all) {
     final forTrack = all.where((c) => c.track == _selectedTrack).toList();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+    return GlassContainer(
+      borderRadius: 14,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -216,8 +217,7 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
                           style: AppTypography.caption(context)
                               .copyWith(color: AppColors.textMuted),
                         ),
-                        onTap: () =>
-                            setState(() => _selectedInstanceId = c.id),
+                        onTap: () => setState(() => _selectedInstanceId = c.id),
                         onLongPress: () => _confirmDelete(c),
                       );
                     },
@@ -237,12 +237,12 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-              labelText: 'Project / client name'),
+          decoration: const InputDecoration(labelText: 'Project / client name'),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           FilledButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
               child: const Text('Create')),
@@ -283,26 +283,21 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
   }
 
   // ── Checklist detail (right pane) ────────────────────────────────────────
-  Widget _checklistDetail(List<ChecklistInstance> all, {required bool compact}) {
-    ChecklistInstance? instance = all
-        .where((c) => c.id == _selectedInstanceId)
-        .firstOrNull;
+  Widget _checklistDetail(List<ChecklistInstance> all,
+      {required bool compact}) {
+    ChecklistInstance? instance =
+        all.where((c) => c.id == _selectedInstanceId).firstOrNull;
 
     if (instance == null) {
       // Auto-pick the first instance on this track, if any.
-      final forTrack =
-          all.where((c) => c.track == _selectedTrack).toList();
+      final forTrack = all.where((c) => c.track == _selectedTrack).toList();
       if (forTrack.isNotEmpty && !compact) instance = forTrack.first;
     }
 
     if (instance == null) {
-      return Container(
+      return GlassContainer(
         padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderLight),
-        ),
+        borderRadius: 14,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -339,12 +334,8 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
             instance!.checked[i.id] != true)
         .length;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+    return GlassContainer(
+      borderRadius: 14,
       child: Column(
         children: [
           // Header with live progress
@@ -400,7 +391,9 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
               minHeight: 4,
               backgroundColor: AppColors.borderLight,
               valueColor: AlwaysStoppedAnimation<Color>(
-                instance.progress >= 1.0 ? AppColors.success : AppColors.primary,
+                instance.progress >= 1.0
+                    ? AppColors.success
+                    : AppColors.primary,
               ),
             ),
           ),
@@ -427,22 +420,17 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
         .toList();
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final doneCount =
-        items.where((i) => instance.checked[i.id] == true).length;
+    final doneCount = items.where((i) => instance.checked[i.id] == true).length;
 
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.bgMid.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+      borderRadius: 12,
+      blur: 16,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           initiallyExpanded: true,
-          tilePadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
           title: Row(
             children: [
@@ -480,8 +468,8 @@ class _ChecklistsScreenState extends ConsumerState<ChecklistsScreen> {
       subtitle: item.detail.isEmpty
           ? null
           : Text(item.detail,
-              style:
-                  AppTypography.caption(context).copyWith(color: AppColors.textMuted)),
+              style: AppTypography.caption(context)
+                  .copyWith(color: AppColors.textMuted)),
       secondary: _severityChip(item.severity),
       activeColor: AppColors.success,
       onChanged: (_) => ref
