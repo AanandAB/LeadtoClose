@@ -19,8 +19,7 @@ class ClientDetailScreen extends ConsumerStatefulWidget {
   const ClientDetailScreen({super.key, required this.clientId});
 
   @override
-  ConsumerState<ClientDetailScreen> createState() =>
-      _ClientDetailScreenState();
+  ConsumerState<ClientDetailScreen> createState() => _ClientDetailScreenState();
 }
 
 class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
@@ -43,10 +42,22 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       );
     }
 
-    final projects = ref.watch(projectsProvider).where((p) => p.clientId == client.id).toList();
-    final invoices = ref.watch(invoicesProvider).where((i) => i.clientId == client.id).toList();
-    final communications = ref.watch(communicationsProvider).where((c) => c.clientId == client.id).toList();
-    final quotes = ref.watch(quotesProvider).where((q) => q.clientId == client.id).toList();
+    final projects = ref
+        .watch(projectsProvider)
+        .where((p) => p.clientId == client.id)
+        .toList();
+    final invoices = ref
+        .watch(invoicesProvider)
+        .where((i) => i.clientId == client.id)
+        .toList();
+    final communications = ref
+        .watch(communicationsProvider)
+        .where((c) => c.clientId == client.id)
+        .toList();
+    final quotes = ref
+        .watch(quotesProvider)
+        .where((q) => q.clientId == client.id)
+        .toList();
 
     return Scaffold(
       body: Row(
@@ -98,7 +109,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 const SizedBox(height: 4),
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: _healthColor(client.healthScore).withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
@@ -116,7 +128,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   const SizedBox(height: 8),
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.success.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(12),
@@ -135,7 +148,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   const SizedBox(height: 8),
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.warning.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(12),
@@ -156,14 +170,21 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 Row(
                   children: [
                     _miniStat('Projects', '${projects.length}', AppColors.info),
-                    _miniStat('Revenue', AppCurrency.format(client.totalRevenue), AppColors.success),
+                    _miniStat(
+                        'Revenue',
+                        AppCurrency.format(client.totalRevenue),
+                        AppColors.success),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _miniStat('Invoices', '${invoices.length}', AppColors.warning),
-                    _miniStat('Outstanding', AppCurrency.format(client.outstandingBalance), AppColors.danger),
+                    _miniStat(
+                        'Invoices', '${invoices.length}', AppColors.warning),
+                    _miniStat(
+                        'Outstanding',
+                        AppCurrency.format(client.outstandingBalance),
+                        AppColors.danger),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -173,9 +194,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   if (client.primaryContact != null) ...[
                     _infoRow(Icons.person_outline, client.primaryContact!.name),
                     if (client.primaryContact!.email.isNotEmpty)
-                      _infoRow(Icons.email_outlined, client.primaryContact!.email),
+                      _infoRow(
+                          Icons.email_outlined, client.primaryContact!.email),
                     if (client.primaryContact!.phone.isNotEmpty)
-                      _infoRow(Icons.phone_outlined, client.primaryContact!.phone),
+                      _infoRow(
+                          Icons.phone_outlined, client.primaryContact!.phone),
                   ],
                   if (client.industry.isNotEmpty)
                     _infoRow(Icons.category_outlined, client.industry),
@@ -185,19 +208,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 const SizedBox(height: 16),
 
                 _infoSection('Details', [
-                  _infoRow(Icons.calendar_today, 'Since ${DateFormat('MMM yyyy').format(client.createdAt)}'),
+                  _infoRow(Icons.calendar_today,
+                      'Since ${DateFormat('MMM yyyy').format(client.createdAt)}'),
                   if (client.tags.isNotEmpty)
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: client.tags.map((t) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(t, style: AppTypography.caption(context).copyWith(color: AppColors.primaryLight)),
-                      )).toList(),
+                      children: client.tags
+                          .map((t) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(t,
+                                    style: AppTypography.caption(context)
+                                        .copyWith(
+                                            color: AppColors.primaryLight)),
+                              ))
+                          .toList(),
                     ),
                 ]),
                 const SizedBox(height: 24),
@@ -225,7 +255,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
                     color: AppColors.bgMid,
-                    border: Border(bottom: BorderSide(color: AppColors.borderLight)),
+                    border: Border(
+                        bottom: BorderSide(color: AppColors.borderLight)),
                   ),
                   child: Row(
                     children: [
@@ -241,7 +272,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
                 // Tab content
                 Expanded(
-                  child: _buildTabContent(client, projects, invoices, quotes, communications),
+                  child: _buildTabContent(
+                      client, projects, invoices, quotes, communications),
                 ),
               ],
             ),
@@ -296,7 +328,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     }
   }
 
-  Widget _buildOverviewTab(Client client, List<Project> projects, List<Invoice> invoices) {
+  Widget _buildOverviewTab(
+      Client client, List<Project> projects, List<Invoice> invoices) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -309,26 +342,27 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(40),
-                child: Text('No activity yet', style: AppTypography.bodySmall(context)),
+                child: Text('No activity yet',
+                    style: AppTypography.bodySmall(context)),
               ),
             )
           else ...[
             // Show recent projects
             ...projects.take(3).map((p) => _timelineItem(
-              Icons.folder_outlined,
-              AppColors.info,
-              'Project: ${p.name}',
-              '${p.status.name} · Due ${p.dueDate != null ? DateFormat('MMM d').format(p.dueDate!) : 'TBD'}',
-              p.createdAt,
-            )),
+                  Icons.folder_outlined,
+                  AppColors.info,
+                  'Project: ${p.name}',
+                  '${p.status.name} · Due ${p.dueDate != null ? DateFormat('MMM d').format(p.dueDate!) : 'TBD'}',
+                  p.createdAt,
+                )),
             // Show recent invoices
             ...invoices.take(3).map((i) => _timelineItem(
-              Icons.receipt_long,
-              AppTheme.statusColor(i.status),
-              'Invoice ${i.number}',
-              '${i.status} · ${AppCurrency.formatFor(i.currency, i.total)}',
-              i.createdAt,
-            )),
+                  Icons.receipt_long,
+                  AppTheme.statusColor(i.status),
+                  'Invoice ${i.number}',
+                  '${i.status} · ${AppCurrency.formatFor(i.currency, i.total)}',
+                  i.createdAt,
+                )),
           ],
 
           const SizedBox(height: 32),
@@ -377,43 +411,90 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         final statusColor = AppTheme.statusColor(p.status.name);
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(p.name, style: AppTypography.body(context).copyWith(
-                      color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-                    )),
-                    const SizedBox(height: 2),
-                    Text(p.description.isNotEmpty ? p.description : 'No description',
-                        style: AppTypography.bodySmall(context), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ],
-                ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => context.go('/project/${p.id}'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.name,
+                            style: AppTypography.body(context).copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            )),
+                        const SizedBox(height: 2),
+                        Text(
+                            p.description.isNotEmpty
+                                ? p.description
+                                : 'No description',
+                            style: AppTypography.bodySmall(context),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  if (p.budget > 0)
+                    Expanded(
+                      child: Text(AppCurrency.format(p.budget),
+                          style: AppTypography.label(context)),
+                    ),
+                  if (p.dueDate != null)
+                    Expanded(
+                      child: Text(DateFormat('MMM d').format(p.dueDate!),
+                          style: AppTypography.bodySmall(context)),
+                    ),
+                  StatusChip(label: p.status.name, color: statusColor),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: 'Delete project',
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    color: AppColors.danger,
+                    onPressed: () => _confirmDeleteProject(context, p),
+                  ),
+                ],
               ),
-              if (p.budget > 0)
-                Expanded(
-                  child: Text(AppCurrency.format(p.budget),
-                      style: AppTypography.label(context)),
-                ),
-              if (p.dueDate != null)
-                Expanded(
-                  child: Text(DateFormat('MMM d').format(p.dueDate!),
-                      style: AppTypography.bodySmall(context)),
-                ),
-              StatusChip(label: p.status.name, color: statusColor),
-            ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Future<void> _confirmDeleteProject(BuildContext context, Project p) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete Project',
+      message: 'Delete "${p.name}"? This also removes its tasks, milestones, '
+          'time entries, documents and lifecycle checklist.',
+      confirmLabel: 'Delete',
+      confirmColor: AppColors.danger,
+    );
+    if (!confirmed || !mounted) return;
+    await ref.read(projectsProvider.notifier).deleteProject(p.id);
+    if (!mounted) return;
+    ref.invalidate(tasksProvider);
+    ref.invalidate(milestonesProvider);
+    ref.invalidate(timeEntriesProvider);
+    ref.invalidate(documentsProvider);
+    ref.invalidate(checklistsProvider);
+    ref.invalidate(invoicesProvider);
+    ref.invalidate(quotesProvider);
+    ref.invalidate(contractsProvider);
+    ref.invalidate(communicationsProvider);
+    ref.invalidate(eventsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Project and related data deleted')),
     );
   }
 
@@ -445,9 +526,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           ),
           child: Row(
             children: [
-              Text(inv.number, style: AppTypography.body(context).copyWith(
-                color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-              )),
+              Text(inv.number,
+                  style: AppTypography.body(context).copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  )),
               const Spacer(),
               Text(AppCurrency.formatFor(inv.currency, inv.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
@@ -456,25 +539,36 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               const SizedBox(width: 8),
               PopupMenuButton<String>(
                 padding: EdgeInsets.zero,
-                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                icon:
+                    Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
                 onSelected: (v) => _handleClientInvoiceAction(v, inv),
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit Invoice')),
+                  const PopupMenuItem(
+                      value: 'edit', child: Text('Edit Invoice')),
                   const PopupMenuDivider(),
                   if (inv.status != 'active')
-                    const PopupMenuItem(value: 'active', child: Text('Mark as Active')),
+                    const PopupMenuItem(
+                        value: 'active', child: Text('Mark as Active')),
                   if (inv.status != 'draft')
-                    const PopupMenuItem(value: 'draft', child: Text('Mark as Draft')),
+                    const PopupMenuItem(
+                        value: 'draft', child: Text('Mark as Draft')),
                   if (inv.status != 'sent')
-                    const PopupMenuItem(value: 'send', child: Text('Mark as Sent')),
+                    const PopupMenuItem(
+                        value: 'send', child: Text('Mark as Sent')),
                   if (inv.status != 'paid')
-                    const PopupMenuItem(value: 'paid', child: Text('Mark as Paid')),
+                    const PopupMenuItem(
+                        value: 'paid', child: Text('Mark as Paid')),
                   if (inv.status != 'cancelled')
-                    const PopupMenuItem(value: 'cancelled', child: Text('Mark as Cancelled')),
+                    const PopupMenuItem(
+                        value: 'cancelled', child: Text('Mark as Cancelled')),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(value: 'print', child: Text('Print / Save PDF')),
+                  const PopupMenuItem(
+                      value: 'print', child: Text('Print / Save PDF')),
                   const PopupMenuDivider(),
-                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                  PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete',
+                          style: TextStyle(color: AppColors.danger))),
                 ],
               ),
             ],
@@ -512,9 +606,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           ),
           child: Row(
             children: [
-              Text(q.number, style: AppTypography.body(context).copyWith(
-                color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-              )),
+              Text(q.number,
+                  style: AppTypography.body(context).copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  )),
               const Spacer(),
               Text(AppCurrency.formatFor(q.currency, q.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
@@ -556,14 +652,17 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             children: [
               Text(c.type.name.toUpperCase(),
                   style: AppTypography.caption(context).copyWith(
-                    color: AppColors.info, fontWeight: FontWeight.w700,
+                    color: AppColors.info,
+                    fontWeight: FontWeight.w700,
                   )),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(c.subject.isNotEmpty ? c.subject : c.body,
                     style: AppTypography.body(context).copyWith(
                       color: AppColors.textPrimary,
-                    ), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
               ),
               Text(DateFormat('MMM d').format(c.createdAt),
                   style: AppTypography.caption(context)),
@@ -574,7 +673,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _timelineItem(IconData icon, Color color, String title, String subtitle, DateTime date) {
+  Widget _timelineItem(IconData icon, Color color, String title,
+      String subtitle, DateTime date) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -583,7 +683,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           Column(
             children: [
               Container(
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -597,15 +698,18 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.body(context).copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w500,
-                )),
+                Text(title,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    )),
                 const SizedBox(height: 2),
                 Text(subtitle, style: AppTypography.bodySmall(context)),
               ],
             ),
           ),
-          Text(DateFormat('MMM d').format(date), style: AppTypography.caption(context)),
+          Text(DateFormat('MMM d').format(date),
+              style: AppTypography.caption(context)),
         ],
       ),
     );
@@ -615,9 +719,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTypography.label(context).copyWith(
-          color: AppColors.textMuted, letterSpacing: 0.5,
-        )),
+        Text(title,
+            style: AppTypography.label(context).copyWith(
+              color: AppColors.textMuted,
+              letterSpacing: 0.5,
+            )),
         const SizedBox(height: 8),
         ...children,
       ],
@@ -631,8 +737,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         children: [
           Icon(icon, size: 14, color: AppColors.textMuted),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: AppTypography.bodySmall(context),
-            overflow: TextOverflow.ellipsis)),
+          Expanded(
+              child: Text(text,
+                  style: AppTypography.bodySmall(context),
+                  overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -651,7 +759,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: AppTypography.heading3(context).copyWith(color: color)),
+            Text(value,
+                style: AppTypography.heading3(context).copyWith(color: color)),
             const SizedBox(height: 2),
             Text(label, style: AppTypography.caption(context)),
           ],
@@ -662,19 +771,27 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
   Color _healthColor(String health) {
     switch (health) {
-      case 'active': return AppColors.success;
-      case 'at-risk': return AppColors.warning;
-      case 'dormant': return AppColors.textMuted;
-      default: return AppColors.textMuted;
+      case 'active':
+        return AppColors.success;
+      case 'at-risk':
+        return AppColors.warning;
+      case 'dormant':
+        return AppColors.textMuted;
+      default:
+        return AppColors.textMuted;
     }
   }
 
   void _showEditClientDialog(BuildContext context, Client client) {
     final companyCtrl = TextEditingController(text: client.companyName);
-    final nameCtrl = TextEditingController(text: client.primaryContact?.name ?? '');
-    final emailCtrl = TextEditingController(text: client.primaryContact?.email ?? '');
-    final phoneCtrl = TextEditingController(text: client.primaryContact?.phone ?? '');
-    String industry = client.industry.isNotEmpty ? client.industry : 'Technology';
+    final nameCtrl =
+        TextEditingController(text: client.primaryContact?.name ?? '');
+    final emailCtrl =
+        TextEditingController(text: client.primaryContact?.email ?? '');
+    final phoneCtrl =
+        TextEditingController(text: client.primaryContact?.phone ?? '');
+    String industry =
+        client.industry.isNotEmpty ? client.industry : 'Technology';
     final discountCtrl = TextEditingController(
         text: client.discountPercent == 0
             ? ''
@@ -696,34 +813,48 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               children: [
                 TextField(
                   controller: companyCtrl,
-                  decoration: const InputDecoration(labelText: 'Company Name *', prefixIcon: Icon(Icons.business_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Company Name *',
+                      prefixIcon: Icon(Icons.business_outlined, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Contact Name', prefixIcon: Icon(Icons.person_outline, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Contact Name',
+                      prefixIcon: Icon(Icons.person_outline, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Phone', prefixIcon: Icon(Icons.phone_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Phone',
+                      prefixIcon: Icon(Icons.phone_outlined, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: industry,
-                  decoration: const InputDecoration(labelText: 'Industry', prefixIcon: Icon(Icons.category_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Industry',
+                      prefixIcon: Icon(Icons.category_outlined, size: 20)),
                   dropdownColor: AppColors.bgCard,
                   items: const [
-                    DropdownMenuItem(value: 'Technology', child: Text('Technology')),
-                    DropdownMenuItem(value: 'E-commerce', child: Text('E-commerce')),
-                    DropdownMenuItem(value: 'Healthcare', child: Text('Healthcare')),
+                    DropdownMenuItem(
+                        value: 'Technology', child: Text('Technology')),
+                    DropdownMenuItem(
+                        value: 'E-commerce', child: Text('E-commerce')),
+                    DropdownMenuItem(
+                        value: 'Healthcare', child: Text('Healthcare')),
                     DropdownMenuItem(value: 'Finance', child: Text('Finance')),
-                    DropdownMenuItem(value: 'Education', child: Text('Education')),
+                    DropdownMenuItem(
+                        value: 'Education', child: Text('Education')),
                     DropdownMenuItem(value: 'Other', child: Text('Other')),
                   ],
                   onChanged: (v) => industry = v!,
@@ -753,7 +884,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (companyCtrl.text.trim().isEmpty) return;
@@ -800,13 +932,17 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Project Name *', prefixIcon: Icon(Icons.folder_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Project Name *',
+                      prefixIcon: Icon(Icons.folder_outlined, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: descCtrl,
                   maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Description', prefixIcon: Icon(Icons.description_outlined, size: 20)),
+                  decoration: const InputDecoration(
+                      labelText: 'Description',
+                      prefixIcon: Icon(Icons.description_outlined, size: 20)),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -826,7 +962,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (nameCtrl.text.trim().isEmpty) return;
@@ -870,7 +1007,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text('Edit ${invoice.number}', style: AppTypography.heading2(context)),
+          title: Text('Edit ${invoice.number}',
+              style: AppTypography.heading2(context)),
           content: SizedBox(
             width: 480,
             height: 400,
@@ -883,7 +1021,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: currency,
-                          decoration: const InputDecoration(labelText: 'Currency'),
+                          decoration:
+                              const InputDecoration(labelText: 'Currency'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
                             DropdownMenuItem(value: 'INR', child: Text('INR')),
@@ -900,14 +1039,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: paymentTerms,
-                          decoration: const InputDecoration(labelText: 'Payment Terms'),
+                          decoration:
+                              const InputDecoration(labelText: 'Payment Terms'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
-                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
-                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60')),
+                            DropdownMenuItem(
+                                value: 'Net 15', child: Text('Net 15')),
+                            DropdownMenuItem(
+                                value: 'Net 30', child: Text('Net 30')),
+                            DropdownMenuItem(
+                                value: 'Net 60', child: Text('Net 60')),
                           ],
-                          onChanged: (v) => setDialogState(() => paymentTerms = v!),
+                          onChanged: (v) =>
+                              setDialogState(() => paymentTerms = v!),
                         ),
                       ),
                     ],
@@ -915,10 +1059,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text('Line Items', style: AppTypography.heading2(context)),
+                      Text('Line Items',
+                          style: AppTypography.heading2(context)),
                       const Spacer(),
                       TextButton.icon(
-                        onPressed: () => setDialogState(() => items.add(_InvoiceItem())),
+                        onPressed: () =>
+                            setDialogState(() => items.add(_InvoiceItem())),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text('Add'),
                       ),
@@ -936,8 +1082,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               controller: item.descCtrl,
                               decoration: InputDecoration(
                                 hintText: 'Description',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
@@ -949,8 +1097,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 hintText: 'Qty',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
@@ -959,19 +1109,24 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             flex: 1,
                             child: TextField(
                               controller: item.priceCtrl,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
                                 prefixText: AppCurrency.symbolFor(currency),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
                           if (items.length > 1)
                             IconButton(
-                              onPressed: () => setDialogState(() => items.removeAt(i)),
-                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                              onPressed: () =>
+                                  setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline,
+                                  color: AppColors.danger, size: 18),
                             ),
                         ],
                       ),
@@ -989,24 +1144,33 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: discountType,
-                          decoration: const InputDecoration(labelText: 'Discount'),
+                          decoration:
+                              const InputDecoration(labelText: 'Discount'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
-                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
-                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                            DropdownMenuItem(
+                                value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(
+                                value: 'percentage',
+                                child: Text('Percentage (%)')),
+                            DropdownMenuItem(
+                                value: 'fixed', child: Text('Fixed Amount')),
                           ],
-                          onChanged: (v) => setDialogState(() => discountType = v!),
+                          onChanged: (v) =>
+                              setDialogState(() => discountType = v!),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: discountCtrl,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
                           enabled: discountType != 'none',
                           decoration: InputDecoration(
-                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                            labelText: discountType == 'percentage'
+                                ? 'Discount %'
+                                : 'Discount amount',
                           ),
                           onChanged: (_) => setDialogState(() {}),
                         ),
@@ -1017,7 +1181,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     builder: (context, ref, _) {
                       final coupons = ref
                           .watch(referralCouponsProvider)
-                          .where((c) => c.clientId == invoice.clientId && c.isActive)
+                          .where((c) =>
+                              c.clientId == invoice.clientId && c.isActive)
                           .toList();
                       if (coupons.isEmpty) return const SizedBox.shrink();
                       return Padding(
@@ -1029,10 +1194,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               prefixIcon: Icon(Icons.card_giftcard, size: 18)),
                           dropdownColor: AppColors.bgCard,
                           items: [
-                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            const DropdownMenuItem<String?>(
+                                value: null, child: Text('None')),
                             ...coupons.map((c) => DropdownMenuItem<String?>(
                                   value: c.id,
-                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                  child: Text(
+                                      '${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
                                 )),
                           ],
                           onChanged: (v) {
@@ -1062,7 +1229,9 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       }
                       double discount = 0;
                       if (discountType == 'percentage') {
-                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                        discount = subtotal *
+                            (double.tryParse(discountCtrl.text) ?? 0) /
+                            100;
                       } else if (discountType == 'fixed') {
                         discount = double.tryParse(discountCtrl.text) ?? 0;
                       }
@@ -1079,27 +1248,38 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Subtotal', style: AppTypography.body(context)),
-                                Text(AppCurrency.formatDecimalFor(currency, subtotal),
+                                Text('Subtotal',
+                                    style: AppTypography.body(context)),
+                                Text(
+                                    AppCurrency.formatDecimalFor(
+                                        currency, subtotal),
                                     style: AppTypography.body(context)),
                               ],
                             ),
                             if (discount > 0)
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Discount', style: AppTypography.body(context)),
-                                  Text('-${AppCurrency.formatDecimalFor(currency, discount)}',
-                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                  Text('Discount',
+                                      style: AppTypography.body(context)),
+                                  Text(
+                                      '-${AppCurrency.formatDecimalFor(currency, discount)}',
+                                      style: AppTypography.body(context)
+                                          .copyWith(color: AppColors.success)),
                                 ],
                               ),
                             const SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Total', style: AppTypography.heading2(context)),
-                                Text(AppCurrency.formatDecimalFor(currency, total),
-                                    style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                                Text('Total',
+                                    style: AppTypography.heading2(context)),
+                                Text(
+                                    AppCurrency.formatDecimalFor(
+                                        currency, total),
+                                    style: AppTypography.heading2(context)
+                                        .copyWith(color: AppColors.primary)),
                               ],
                             ),
                           ],
@@ -1112,32 +1292,42 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
-                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => InvoiceLineItem(
-                  description: i.descCtrl.text,
-                  quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
-                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
-                )).toList();
-                final subtotal = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final lineItems = items
+                    .where((i) => i.descCtrl.text.isNotEmpty)
+                    .map((i) => InvoiceLineItem(
+                          description: i.descCtrl.text,
+                          quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
+                          rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                        ))
+                    .toList();
+                final subtotal =
+                    lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
                 double discount = 0;
                 if (discountType == 'percentage') {
-                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                  discount = subtotal *
+                      (double.tryParse(discountCtrl.text) ?? 0) /
+                      100;
                 } else if (discountType == 'fixed') {
                   discount = double.tryParse(discountCtrl.text) ?? 0;
                 }
                 final total = subtotal - discount;
-                ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(
-                  lineItems: lineItems,
-                  subtotal: subtotal,
-                  discount: discount,
-                  couponCode: appliedCouponCode,
-                  total: total,
-                  currency: currency,
-                  paymentTerms: paymentTerms,
-                  notes: notesCtrl.text.trim(),
-                ));
+                ref
+                    .read(invoicesProvider.notifier)
+                    .updateInvoice(invoice.copyWith(
+                      lineItems: lineItems,
+                      subtotal: subtotal,
+                      discount: discount,
+                      couponCode: appliedCouponCode,
+                      total: total,
+                      currency: currency,
+                      paymentTerms: paymentTerms,
+                      notes: notesCtrl.text.trim(),
+                    ));
                 Navigator.pop(ctx);
               },
               child: const Text('Save Changes'),
@@ -1175,15 +1365,22 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: currency,
-                          decoration: const InputDecoration(labelText: 'Currency'),
+                          decoration:
+                              const InputDecoration(labelText: 'Currency'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            const DropdownMenuItem(value: 'INR', child: Text('INR (₹)')),
-                            const DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
-                            const DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
-                            const DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
-                            const DropdownMenuItem(value: 'AED', child: Text('AED (د.إ)')),
-                            const DropdownMenuItem(value: 'SAR', child: Text('SAR (﷼)')),
+                            const DropdownMenuItem(
+                                value: 'INR', child: Text('INR (₹)')),
+                            const DropdownMenuItem(
+                                value: 'USD', child: Text('USD (\$)')),
+                            const DropdownMenuItem(
+                                value: 'EUR', child: Text('EUR (€)')),
+                            const DropdownMenuItem(
+                                value: 'GBP', child: Text('GBP (£)')),
+                            const DropdownMenuItem(
+                                value: 'AED', child: Text('AED (د.إ)')),
+                            const DropdownMenuItem(
+                                value: 'SAR', child: Text('SAR (﷼)')),
                           ],
                           onChanged: (v) => setDialogState(() => currency = v!),
                         ),
@@ -1192,14 +1389,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: paymentTerms,
-                          decoration: const InputDecoration(labelText: 'Payment Terms'),
+                          decoration:
+                              const InputDecoration(labelText: 'Payment Terms'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
-                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
-                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60')),
+                            DropdownMenuItem(
+                                value: 'Net 15', child: Text('Net 15')),
+                            DropdownMenuItem(
+                                value: 'Net 30', child: Text('Net 30')),
+                            DropdownMenuItem(
+                                value: 'Net 60', child: Text('Net 60')),
                           ],
-                          onChanged: (v) => setDialogState(() => paymentTerms = v!),
+                          onChanged: (v) =>
+                              setDialogState(() => paymentTerms = v!),
                         ),
                       ),
                     ],
@@ -1219,10 +1421,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text('Line Items', style: AppTypography.heading2(context)),
+                      Text('Line Items',
+                          style: AppTypography.heading2(context)),
                       const Spacer(),
                       TextButton.icon(
-                        onPressed: () => setDialogState(() => items.add(_InvoiceItem())),
+                        onPressed: () =>
+                            setDialogState(() => items.add(_InvoiceItem())),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text('Add'),
                       ),
@@ -1240,8 +1444,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               controller: item.descCtrl,
                               decoration: InputDecoration(
                                 hintText: 'Description',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
@@ -1253,8 +1459,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 hintText: 'Qty',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
@@ -1263,19 +1471,24 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             flex: 1,
                             child: TextField(
                               controller: item.priceCtrl,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
                                 prefixText: AppCurrency.symbolFor(currency),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
                           if (items.length > 1)
                             IconButton(
-                              onPressed: () => setDialogState(() => items.removeAt(i)),
-                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                              onPressed: () =>
+                                  setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline,
+                                  color: AppColors.danger, size: 18),
                             ),
                         ],
                       ),
@@ -1287,24 +1500,33 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: discountType,
-                          decoration: const InputDecoration(labelText: 'Discount'),
+                          decoration:
+                              const InputDecoration(labelText: 'Discount'),
                           dropdownColor: AppColors.bgCard,
                           items: const [
-                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
-                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
-                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                            DropdownMenuItem(
+                                value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(
+                                value: 'percentage',
+                                child: Text('Percentage (%)')),
+                            DropdownMenuItem(
+                                value: 'fixed', child: Text('Fixed Amount')),
                           ],
-                          onChanged: (v) => setDialogState(() => discountType = v!),
+                          onChanged: (v) =>
+                              setDialogState(() => discountType = v!),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: discountCtrl,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
                           enabled: discountType != 'none',
                           decoration: InputDecoration(
-                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                            labelText: discountType == 'percentage'
+                                ? 'Discount %'
+                                : 'Discount amount',
                           ),
                           onChanged: (_) => setDialogState(() {}),
                         ),
@@ -1327,10 +1549,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               prefixIcon: Icon(Icons.card_giftcard, size: 18)),
                           dropdownColor: AppColors.bgCard,
                           items: [
-                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            const DropdownMenuItem<String?>(
+                                value: null, child: Text('None')),
                             ...coupons.map((c) => DropdownMenuItem<String?>(
                                   value: c.id,
-                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                  child: Text(
+                                      '${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
                                 )),
                           ],
                           onChanged: (v) {
@@ -1360,7 +1584,9 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       }
                       double discount = 0;
                       if (discountType == 'percentage') {
-                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                        discount = subtotal *
+                            (double.tryParse(discountCtrl.text) ?? 0) /
+                            100;
                       } else if (discountType == 'fixed') {
                         discount = double.tryParse(discountCtrl.text) ?? 0;
                       }
@@ -1377,27 +1603,38 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Subtotal', style: AppTypography.body(context)),
-                                Text(AppCurrency.formatDecimalFor(currency, subtotal),
+                                Text('Subtotal',
+                                    style: AppTypography.body(context)),
+                                Text(
+                                    AppCurrency.formatDecimalFor(
+                                        currency, subtotal),
                                     style: AppTypography.body(context)),
                               ],
                             ),
                             if (discount > 0)
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Discount', style: AppTypography.body(context)),
-                                  Text('-${AppCurrency.formatDecimalFor(currency, discount)}',
-                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                  Text('Discount',
+                                      style: AppTypography.body(context)),
+                                  Text(
+                                      '-${AppCurrency.formatDecimalFor(currency, discount)}',
+                                      style: AppTypography.body(context)
+                                          .copyWith(color: AppColors.success)),
                                 ],
                               ),
                             const SizedBox(height: 4),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Total', style: AppTypography.heading2(context)),
-                                Text(AppCurrency.formatDecimalFor(currency, total),
-                                    style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                                Text('Total',
+                                    style: AppTypography.heading2(context)),
+                                Text(
+                                    AppCurrency.formatDecimalFor(
+                                        currency, total),
+                                    style: AppTypography.heading2(context)
+                                        .copyWith(color: AppColors.primary)),
                               ],
                             ),
                           ],
@@ -1410,25 +1647,34 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
-                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => InvoiceLineItem(
-                  description: i.descCtrl.text,
-                  quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
-                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
-                )).toList();
-                final subtotal = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final lineItems = items
+                    .where((i) => i.descCtrl.text.isNotEmpty)
+                    .map((i) => InvoiceLineItem(
+                          description: i.descCtrl.text,
+                          quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
+                          rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                        ))
+                    .toList();
+                final subtotal =
+                    lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
                 double discount = 0;
                 if (discountType == 'percentage') {
-                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                  discount = subtotal *
+                      (double.tryParse(discountCtrl.text) ?? 0) /
+                      100;
                 } else if (discountType == 'fixed') {
                   discount = double.tryParse(discountCtrl.text) ?? 0;
                 }
                 final total = subtotal - discount;
                 final invoice = Invoice(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                  number:
+                      'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   clientId: clientId,
                   status: invStatus,
                   lineItems: lineItems,
@@ -1470,15 +1716,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 children: [
                   TextField(
                     controller: titleCtrl,
-                    decoration: const InputDecoration(labelText: 'Proposal Title *', prefixIcon: Icon(Icons.title, size: 20)),
+                    decoration: const InputDecoration(
+                        labelText: 'Proposal Title *',
+                        prefixIcon: Icon(Icons.title, size: 20)),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text('Line Items', style: AppTypography.heading2(context)),
+                      Text('Line Items',
+                          style: AppTypography.heading2(context)),
                       const Spacer(),
                       TextButton.icon(
-                        onPressed: () => setDialogState(() => items.add(_ProposalItem())),
+                        onPressed: () =>
+                            setDialogState(() => items.add(_ProposalItem())),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text('Add'),
                       ),
@@ -1496,8 +1746,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               controller: item.descCtrl,
                               decoration: InputDecoration(
                                 hintText: 'Description',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
@@ -1506,19 +1758,24 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                             flex: 1,
                             child: TextField(
                               controller: item.priceCtrl,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
                                 prefixText: AppCurrency.symbolFor(currency),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
                           ),
                           if (items.length > 1)
                             IconButton(
-                              onPressed: () => setDialogState(() => items.removeAt(i)),
-                              icon: Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 18),
+                              onPressed: () =>
+                                  setDialogState(() => items.removeAt(i)),
+                              icon: Icon(Icons.remove_circle_outline,
+                                  color: AppColors.danger, size: 18),
                             ),
                         ],
                       ),
@@ -1529,19 +1786,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
                 if (titleCtrl.text.trim().isEmpty) return;
-                final lineItems = items.where((i) => i.descCtrl.text.isNotEmpty).map((i) => QuoteLineItem(
-                  description: i.descCtrl.text,
-                  quantity: 1,
-                  rate: double.tryParse(i.priceCtrl.text) ?? 0,
-                )).toList();
-                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final lineItems = items
+                    .where((i) => i.descCtrl.text.isNotEmpty)
+                    .map((i) => QuoteLineItem(
+                          description: i.descCtrl.text,
+                          quantity: 1,
+                          rate: double.tryParse(i.priceCtrl.text) ?? 0,
+                        ))
+                    .toList();
+                final total =
+                    lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
                 final quote = Quote(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  number: 'PROP-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
+                  number:
+                      'PROP-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   title: titleCtrl.text.trim(),
                   clientId: clientId,
                   currency: currency,
@@ -1567,28 +1831,42 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       return;
     }
     if (action == 'active') {
-      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'active'));
+      ref
+          .read(invoicesProvider.notifier)
+          .updateInvoice(inv.copyWith(status: 'active'));
       return;
     }
     if (action == 'draft') {
-      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'draft'));
+      ref
+          .read(invoicesProvider.notifier)
+          .updateInvoice(inv.copyWith(status: 'draft'));
       return;
     }
     if (action == 'send') {
-      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'sent'));
+      ref
+          .read(invoicesProvider.notifier)
+          .updateInvoice(inv.copyWith(status: 'sent'));
       return;
     }
     if (action == 'paid') {
-      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'paid', amountPaid: inv.total));
+      ref
+          .read(invoicesProvider.notifier)
+          .updateInvoice(inv.copyWith(status: 'paid', amountPaid: inv.total));
       return;
     }
     if (action == 'cancelled') {
-      ref.read(invoicesProvider.notifier).updateInvoice(inv.copyWith(status: 'cancelled'));
+      ref
+          .read(invoicesProvider.notifier)
+          .updateInvoice(inv.copyWith(status: 'cancelled'));
       return;
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: inv.currency);
+      PdfService.printInvoice(inv,
+          businessName: settings.businessName.isNotEmpty
+              ? settings.businessName
+              : 'FreelanceHub',
+          currency: inv.currency);
       return;
     }
     if (action == 'delete') {
@@ -1597,9 +1875,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Invoice deleted'),
-            action: SnackBarAction(label: 'Undo', onPressed: () {
-              ref.read(invoicesProvider.notifier).addInvoice(inv);
-            }),
+            action: SnackBarAction(
+                label: 'Undo',
+                onPressed: () {
+                  ref.read(invoicesProvider.notifier).addInvoice(inv);
+                }),
           ),
         );
       }
@@ -1615,7 +1895,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       return EmptyState(
         icon: Icons.card_giftcard,
         title: 'No referral coupons yet',
-        subtitle: 'Reward this client for successful referrals with a discount coupon',
+        subtitle:
+            'Reward this client for successful referrals with a discount coupon',
         actionLabel: 'Add Coupon',
         onAction: () => _showAddCouponDialog(context, client.id),
       );
@@ -1646,10 +1927,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(c.code, style: AppTypography.body(context).copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    )),
+                    Text(c.code,
+                        style: AppTypography.body(context).copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        )),
                     const SizedBox(height: 2),
                     Text(
                       c.isPercentage
@@ -1664,15 +1946,21 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               const SizedBox(width: 8),
               PopupMenuButton<String>(
                 padding: EdgeInsets.zero,
-                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                icon:
+                    Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
                 onSelected: (v) => _handleCouponAction(v, c),
                 itemBuilder: (_) => [
                   if (c.status == 'active')
-                    const PopupMenuItem(value: 'used', child: Text('Mark as Used')),
+                    const PopupMenuItem(
+                        value: 'used', child: Text('Mark as Used')),
                   if (c.status != 'active')
-                    const PopupMenuItem(value: 'active', child: Text('Mark as Active')),
+                    const PopupMenuItem(
+                        value: 'active', child: Text('Mark as Active')),
                   const PopupMenuDivider(),
-                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                  PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete',
+                          style: TextStyle(color: AppColors.danger))),
                 ],
               ),
             ],
@@ -1684,11 +1972,15 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
 
   void _handleCouponAction(String action, ReferralCoupon coupon) {
     if (action == 'used') {
-      ref.read(referralCouponsProvider.notifier).updateCoupon(coupon.copyWith(status: 'used'));
+      ref
+          .read(referralCouponsProvider.notifier)
+          .updateCoupon(coupon.copyWith(status: 'used'));
       return;
     }
     if (action == 'active') {
-      ref.read(referralCouponsProvider.notifier).updateCoupon(coupon.copyWith(status: 'active'));
+      ref
+          .read(referralCouponsProvider.notifier)
+          .updateCoupon(coupon.copyWith(status: 'active'));
       return;
     }
     if (action == 'delete') {
@@ -1706,7 +1998,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text('Add Referral Coupon', style: AppTypography.heading2(context)),
+          title: Text('Add Referral Coupon',
+              style: AppTypography.heading2(context)),
           content: SizedBox(
             width: 400,
             child: SingleChildScrollView(
@@ -1727,17 +2020,21 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     decoration: const InputDecoration(labelText: 'Type'),
                     dropdownColor: AppColors.bgCard,
                     items: const [
-                      DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
-                      DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                      DropdownMenuItem(
+                          value: 'percentage', child: Text('Percentage (%)')),
+                      DropdownMenuItem(
+                          value: 'fixed', child: Text('Fixed Amount')),
                     ],
                     onChanged: (v) => setDialogState(() => type = v!),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: valueCtrl,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: type == 'percentage' ? 'Value (%)' : 'Value (amount)',
+                      labelText:
+                          type == 'percentage' ? 'Value (%)' : 'Value (amount)',
                       prefixIcon: const Icon(Icons.numbers, size: 20),
                     ),
                   ),
@@ -1755,7 +2052,9 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
                 if (codeCtrl.text.trim().isEmpty) return;
@@ -1779,7 +2078,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   }
 
   void _showComposeMessageDialog(BuildContext context, String clientId) {
-    final client = ref.read(clientsProvider).where((c) => c.id == clientId).firstOrNull;
+    final client =
+        ref.read(clientsProvider).where((c) => c.id == clientId).firstOrNull;
     String messageType = 'email';
     final subjectCtrl = TextEditingController();
     final bodyCtrl = TextEditingController();
@@ -1800,10 +2100,14 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _msgTypeChip('Email', 'email', messageType, (v) => setDialogState(() => messageType = v)),
-                      _msgTypeChip('WhatsApp', 'sms', messageType, (v) => setDialogState(() => messageType = v)),
-                      _msgTypeChip('Call', 'call', messageType, (v) => setDialogState(() => messageType = v)),
-                      _msgTypeChip('Note', 'note', messageType, (v) => setDialogState(() => messageType = v)),
+                      _msgTypeChip('Email', 'email', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _msgTypeChip('WhatsApp', 'sms', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _msgTypeChip('Call', 'call', messageType,
+                          (v) => setDialogState(() => messageType = v)),
+                      _msgTypeChip('Note', 'note', messageType,
+                          (v) => setDialogState(() => messageType = v)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -1815,36 +2119,48 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   TextField(
                     controller: bodyCtrl,
                     maxLines: 5,
-                    decoration: const InputDecoration(labelText: 'Message', hintText: 'Type your message...'),
+                    decoration: const InputDecoration(
+                        labelText: 'Message', hintText: 'Type your message...'),
                   ),
                 ],
               ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton.icon(
               onPressed: () {
                 final comm = Communication(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   clientId: clientId,
-                  type: CommunicationType.values.firstWhere((e) => e.name == messageType, orElse: () => CommunicationType.email),
+                  type: CommunicationType.values.firstWhere(
+                      (e) => e.name == messageType,
+                      orElse: () => CommunicationType.email),
                   subject: subjectCtrl.text.trim(),
                   body: bodyCtrl.text.trim(),
                 );
-                ref.read(communicationsProvider.notifier).addCommunication(comm);
+                ref
+                    .read(communicationsProvider.notifier)
+                    .addCommunication(comm);
                 Navigator.pop(ctx);
 
                 // If WhatsApp, open WhatsApp with the pre-written message
                 if (messageType == 'sms') {
-                  final phone = (client?.primaryContact?.phone ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
+                  final phone = (client?.primaryContact?.phone ?? '')
+                      .replaceAll(RegExp(r'[^0-9+]'), '');
                   final message = Uri.encodeComponent(bodyCtrl.text.trim());
                   if (phone.isNotEmpty) {
-                    final waUrl = Uri.parse('https://wa.me/$phone?text=$message');
-                    launchUrl(waUrl, mode: LaunchMode.externalApplication).catchError((_) {
+                    final waUrl =
+                        Uri.parse('https://wa.me/$phone?text=$message');
+                    launchUrl(waUrl, mode: LaunchMode.externalApplication)
+                        .catchError((_) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not open WhatsApp. Make sure WhatsApp is installed.')),
+                          const SnackBar(
+                              content: Text(
+                                  'Could not open WhatsApp. Make sure WhatsApp is installed.')),
                         );
                       }
                       return false;
@@ -1852,14 +2168,18 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   } else {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No phone number found for this client. Add a phone number first.')),
+                        const SnackBar(
+                            content: Text(
+                                'No phone number found for this client. Add a phone number first.')),
                       );
                     }
                   }
                 }
               },
-              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send, size: 16),
-              label: Text(messageType == 'sms' ? 'Log & Open WhatsApp' : 'Log Message'),
+              icon: Icon(messageType == 'sms' ? Icons.chat : Icons.send,
+                  size: 16),
+              label: Text(
+                  messageType == 'sms' ? 'Log & Open WhatsApp' : 'Log Message'),
             ),
           ],
         ),
@@ -1867,20 +2187,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  Widget _msgTypeChip(String label, String value, String current, Function(String) onTap) {
+  Widget _msgTypeChip(
+      String label, String value, String current, Function(String) onTap) {
     final selected = current == value;
     return GestureDetector(
       onTap: () => onTap(value),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+          color: selected
+              ? AppColors.primary.withOpacity(0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? AppColors.primary : AppColors.borderLight),
+          border: Border.all(
+              color: selected ? AppColors.primary : AppColors.borderLight),
         ),
-        child: Text(label, style: AppTypography.label(context).copyWith(
-          color: selected ? AppColors.primaryLight : AppColors.textMuted, fontSize: 11,
-        )),
+        child: Text(label,
+            style: AppTypography.label(context).copyWith(
+              color: selected ? AppColors.primaryLight : AppColors.textMuted,
+              fontSize: 11,
+            )),
       ),
     );
   }

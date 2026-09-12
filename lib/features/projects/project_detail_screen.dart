@@ -93,7 +93,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             label: project.status.name,
             color: AppTheme.statusColor(project.status.name),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Delete project',
+            icon: const Icon(Icons.delete_outline_rounded),
+            color: AppColors.danger,
+            onPressed: () => _confirmDeleteProject(context, project),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Row(
@@ -362,6 +369,22 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         .updateProject(project.copyWith(step: step));
     // Push the updated step to the portal right away (best-effort).
     ref.read(portalSyncProvider).syncNow();
+  }
+
+  Future<void> _confirmDeleteProject(
+      BuildContext context, Project project) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete Project',
+      message: 'Delete "${project.name}"? This also removes its tasks, '
+          'milestones, time entries, documents and lifecycle checklist.',
+      confirmLabel: 'Delete',
+      confirmColor: AppColors.danger,
+    );
+    if (!confirmed || !mounted) return;
+    await ref.read(projectsProvider.notifier).deleteProject(project.id);
+    if (!mounted) return;
+    context.go('/');
   }
 
   Widget _sectionBtn(String section, String label) {
