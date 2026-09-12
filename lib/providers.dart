@@ -42,8 +42,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 // ============ Leads ============
-final leadsProvider =
-    StateNotifierProvider<LeadsNotifier, List<Lead>>((ref) {
+final leadsProvider = StateNotifierProvider<LeadsNotifier, List<Lead>>((ref) {
   final storage = ref.watch(storageServiceProvider);
   return LeadsNotifier(storage);
 });
@@ -132,6 +131,18 @@ final leadSyncProvider = Provider<LeadSyncService>((ref) {
   final service = LeadSyncService(
     importLead: (lead) async {
       await leadsNotifier.addLead(lead);
+      // Every new website lead also gets a follow-up reminder on the calendar.
+      final events = ref.read(eventsProvider.notifier);
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final start = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 9, 0);
+      await events.addEvent(CalendarEvent(
+        id: 'followup_${lead.id}',
+        title: 'Follow up — ${lead.name}',
+        description: lead.email,
+        type: EventType.followUp,
+        startTime: start,
+        leadId: lead.id,
+      ));
       return true;
     },
     hasSeenRemoteLead: storage.hasSyncKey,
@@ -276,8 +287,7 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
 }
 
 // ============ Tasks ============
-final tasksProvider =
-    StateNotifierProvider<TasksNotifier, List<Task>>((ref) {
+final tasksProvider = StateNotifierProvider<TasksNotifier, List<Task>>((ref) {
   final storage = ref.watch(storageServiceProvider);
   return TasksNotifier(storage);
 });
@@ -356,9 +366,9 @@ class InvoicesNotifier extends StateNotifier<List<Invoice>> {
       .where((i) => i.status == 'paid')
       .fold(0.0, (sum, i) => sum + i.total);
 
-  double get outstanding =>
-      state.where((i) => i.status == 'active')
-          .fold(0.0, (sum, i) => sum + i.balanceDue);
+  double get outstanding => state
+      .where((i) => i.status == 'active')
+      .fold(0.0, (sum, i) => sum + i.balanceDue);
 
   double get overdue =>
       state.where((i) => i.isOverdue).fold(0.0, (sum, i) => sum + i.balanceDue);
@@ -558,8 +568,7 @@ class DocumentsNotifier extends StateNotifier<List<AppDocument>> {
 
 // ============ Communications ============
 final communicationsProvider =
-    StateNotifierProvider<CommunicationsNotifier, List<Communication>>(
-        (ref) {
+    StateNotifierProvider<CommunicationsNotifier, List<Communication>>((ref) {
   final storage = ref.watch(storageServiceProvider);
   return CommunicationsNotifier(storage);
 });

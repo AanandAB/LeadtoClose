@@ -117,15 +117,13 @@ class LeadSyncService {
           : '&since=${Uri.encodeComponent(_lastSince!.toIso8601String())}';
       final uri = Uri.parse(
           '${config.baseUrl.replaceAll(RegExp(r'/+$'), '')}/api/leads?limit=50$sinceParam');
-      final res = await _client
-          .get(
-            uri,
-            headers: {
-              'Authorization': 'Bearer ${config.token}',
-              'Accept': 'application/json',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
+      final res = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer ${config.token}',
+          'Accept': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 15));
 
       if (res.statusCode != 200) {
         onError?.call('Sync failed: HTTP ${res.statusCode}');
@@ -149,13 +147,11 @@ class LeadSyncService {
           onNewLead?.call(remote);
           try {
             // Best-effort ack so the dashboard shows it as imported.
-            await _client
-                .patch(
-                  Uri.parse(
-                      '${config.baseUrl.replaceAll(RegExp(r'/+$'), '')}/api/leads/${remote.id}/ack'),
-                  headers: {'Authorization': 'Bearer ${config.token}'},
-                )
-                .timeout(const Duration(seconds: 10));
+            await _client.patch(
+              Uri.parse(
+                  '${config.baseUrl.replaceAll(RegExp(r'/+$'), '')}/api/leads/${remote.id}/ack'),
+              headers: {'Authorization': 'Bearer ${config.token}'},
+            ).timeout(const Duration(seconds: 10));
           } catch (_) {}
         }
       }
@@ -171,7 +167,8 @@ class LeadSyncService {
   }
 
   Lead _toLocalLead(RemoteLead r) {
-    final budget = double.tryParse(r.budget.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    final budget =
+        double.tryParse(r.budget.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
     return Lead(
       id: 'web_${r.id}',
       name: r.name.isEmpty ? 'Website Visitor' : r.name,
@@ -201,6 +198,7 @@ class LeadSyncService {
       createdAt: DateTime.tryParse(r.submittedAt) ?? DateTime.now(),
       updatedAt: DateTime.now(),
       lastContactedAt: DateTime.tryParse(r.submittedAt) ?? DateTime.now(),
+      followUpDate: DateTime.now().add(const Duration(days: 1)),
     );
   }
 }
