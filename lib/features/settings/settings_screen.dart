@@ -42,11 +42,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _phoneCtrl = TextEditingController(text: settings.phone);
     _websiteCtrl = TextEditingController(text: settings.website);
     _addressCtrl = TextEditingController(text: settings.address);
-    _taxRateCtrl = TextEditingController(text: settings.defaultTaxRate.toString());
+    _taxRateCtrl =
+        TextEditingController(text: settings.defaultTaxRate.toString());
     _leadSyncUrlCtrl = TextEditingController(text: settings.leadSyncUrl);
     _leadSyncTokenCtrl = TextEditingController(text: settings.leadSyncToken);
     _portalSyncUrlCtrl = TextEditingController(text: settings.portalSyncUrl);
-    _portalSyncTokenCtrl = TextEditingController(text: settings.portalSyncToken);
+    _portalSyncTokenCtrl =
+        TextEditingController(text: settings.portalSyncToken);
     _studioWhatsappCtrl =
         TextEditingController(text: settings.studioWhatsappNumber);
     _currency = settings.currency;
@@ -105,13 +107,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Row(
                   children: [
                     Container(
-                      width: 40, height: 40,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: AppColors.primaryTint,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        settings.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        settings.isDarkMode
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
                         color: AppColors.primary,
                         size: 20,
                       ),
@@ -121,10 +126,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Dark Mode', style: AppTypography.body(context).copyWith(
-                            color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-                          )),
-                          Text(settings.isDarkMode ? 'Currently using dark theme' : 'Currently using light theme',
+                          Text('Dark Mode',
+                              style: AppTypography.body(context).copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              )),
+                          Text(
+                              settings.isDarkMode
+                                  ? 'Currently using dark theme'
+                                  : 'Currently using light theme',
                               style: AppTypography.bodySmall(context)),
                         ],
                       ),
@@ -147,7 +157,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Branding
               _section('Branding'),
               const SizedBox(height: 12),
-              _field('Business Name', _businessNameCtrl, Icons.business_outlined),
+              _field(
+                  'Business Name', _businessNameCtrl, Icons.business_outlined),
               const SizedBox(height: 12),
               _field('Your Name', _ownerNameCtrl, Icons.person_outline),
               const SizedBox(height: 12),
@@ -157,7 +168,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 12),
               _field('Website', _websiteCtrl, Icons.language),
               const SizedBox(height: 12),
-              _field('Address', _addressCtrl, Icons.location_on_outlined, maxLines: 2),
+              _field('Address', _addressCtrl, Icons.location_on_outlined,
+                  maxLines: 2),
               const SizedBox(height: 32),
 
               // Preferences
@@ -171,17 +183,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              _field('Tax Rate (%)', _taxRateCtrl, Icons.percent, isNumber: true),
+              _field('Tax Rate (%)', _taxRateCtrl, Icons.percent,
+                  isNumber: true),
               const SizedBox(height: 32),
 
               // Integrations
               _section('Integrations'),
               const SizedBox(height: 12),
-              _integrationCard('Stripe', 'Accept payments via Stripe', Icons.payment, AppColors.primary, settings.integrations.contains('stripe')),
-              _integrationCard('PayPal', 'Accept payments via PayPal', Icons.paypal, AppColors.info, settings.integrations.contains('paypal')),
-              _integrationCard('Google Calendar', 'Sync events with Google Calendar', Icons.calendar_today, AppColors.success, settings.integrations.contains('google_calendar')),
-              _integrationCard('Slack', 'Get notifications in Slack', Icons.notifications_active, AppColors.warning, settings.integrations.contains('slack')),
-              _integrationCard('GitHub', 'Link repos to projects', Icons.code, AppColors.textSecondary, settings.integrations.contains('github')),
+              _integrationCard(
+                  'Stripe',
+                  'Accept payments via Stripe',
+                  Icons.payment,
+                  AppColors.primary,
+                  settings.integrations.contains('stripe')),
+              _integrationCard(
+                  'PayPal',
+                  'Accept payments via PayPal',
+                  Icons.paypal,
+                  AppColors.info,
+                  settings.integrations.contains('paypal')),
+              _integrationCard(
+                  'Google Calendar',
+                  'Sync events with Google Calendar',
+                  Icons.calendar_today,
+                  AppColors.success,
+                  settings.integrations.contains('google_calendar')),
+              _integrationCard(
+                  'Slack',
+                  'Get notifications in Slack',
+                  Icons.notifications_active,
+                  AppColors.warning,
+                  settings.integrations.contains('slack')),
+              _integrationCard(
+                  'GitHub',
+                  'Link repos to projects',
+                  Icons.code,
+                  AppColors.textSecondary,
+                  settings.integrations.contains('github')),
               const SizedBox(height: 32),
 
               // Live Lead Sync (Cloudflare)
@@ -233,7 +271,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   settings.copyWith(leadSyncEnabled: v),
                                 );
                             if (v) {
-                              _applySyncConfig(settings.copyWith(leadSyncEnabled: v));
+                              _applySyncConfig(
+                                  settings.copyWith(leadSyncEnabled: v));
                               showAppSnackbar(context, 'Live lead sync enabled',
                                   type: AppSnackbarType.success);
                             }
@@ -247,7 +286,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       controller: _leadSyncUrlCtrl,
                       decoration: const InputDecoration(
                         labelText: 'Worker base URL',
-                        hintText: 'https://bitnexel-leads.<account>.workers.dev',
+                        hintText:
+                            'https://bitnexel-leads.<account>.workers.dev',
                         prefixIcon: Icon(Icons.link, size: 20),
                       ),
                     ),
@@ -382,7 +422,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         FilledButton.icon(
                           onPressed: _saveAndTestPortalSync,
-                          icon: const Icon(Icons.cloud_upload_rounded, size: 18),
+                          icon:
+                              const Icon(Icons.cloud_upload_rounded, size: 18),
                           label: const Text('Save & Sync Now'),
                         ),
                         const SizedBox(width: 16),
@@ -432,11 +473,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _section(String title) {
     return Text(
       title,
-      style: AppTypography.heading2(context).copyWith(color: AppColors.primaryLight),
+      style: AppTypography.heading2(context)
+          .copyWith(color: AppColors.primaryLight),
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl, IconData icon, {int maxLines = 1, bool isNumber = false}) {
+  Widget _field(String label, TextEditingController ctrl, IconData icon,
+      {int maxLines = 1, bool isNumber = false}) {
     return TextField(
       controller: ctrl,
       maxLines: maxLines,
@@ -481,7 +524,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       dropdownColor: AppColors.bgCard,
       items: const [
-        DropdownMenuItem(value: 'Due on Receipt', child: Text('Due on Receipt')),
+        DropdownMenuItem(
+            value: 'Due on Receipt', child: Text('Due on Receipt')),
         DropdownMenuItem(value: 'Net 15', child: Text('Net 15')),
         DropdownMenuItem(value: 'Net 30', child: Text('Net 30')),
         DropdownMenuItem(value: 'Net 45', child: Text('Net 45')),
@@ -491,7 +535,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _integrationCard(String name, String desc, IconData icon, Color color, bool enabled) {
+  Widget _integrationCard(
+      String name, String desc, IconData icon, Color color, bool enabled) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
@@ -503,7 +548,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Row(
         children: [
           Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(10),
@@ -515,9 +561,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: AppTypography.body(context).copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-                )),
+                Text(name,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    )),
                 Text(desc, style: AppTypography.bodySmall(context)),
               ],
             ),
@@ -549,14 +597,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 130, child: Text(label, style: AppTypography.bodySmall(context))),
+          SizedBox(
+              width: 130,
+              child: Text(label, style: AppTypography.bodySmall(context))),
           Expanded(child: Text(value, style: AppTypography.body(context))),
         ],
       ),
     );
   }
 
-  void _saveSettings() {
+  Future<void> _saveSettings() async {
     final current = ref.read(settingsProvider);
     final updated = current.copyWith(
       businessName: _businessNameCtrl.text.trim(),
@@ -574,11 +624,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       portalSyncToken: _portalSyncTokenCtrl.text.trim(),
       studioWhatsappNumber: _studioWhatsappCtrl.text.trim(),
     );
-    ref.read(settingsProvider.notifier).save(updated);
+    await ref.read(settingsProvider.notifier).save(updated);
     _applySyncConfig(updated);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings saved')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Settings saved')),
+      );
+    }
   }
 
   void _applySyncConfig(AppSettings settings) {
@@ -590,7 +642,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveAndTestSync() async {
-    _saveSettings();
+    await _saveSettings();
+
+    final url = _leadSyncUrlCtrl.text.trim();
+    final token = _leadSyncTokenCtrl.text.trim();
+
+    if (url.isEmpty || token.isEmpty) {
+      if (mounted) {
+        showAppSnackbar(context, 'Enter the lead worker URL & token first',
+            type: AppSnackbarType.error);
+      }
+      return;
+    }
+
+    // Auto-enable live lead sync so it survives restart + the periodic timer.
+    await ref
+        .read(settingsProvider.notifier)
+        .save(ref.read(settingsProvider).copyWith(leadSyncEnabled: true));
+
+    ref.read(leadSyncProvider).configure(LeadSyncConfig(
+          baseUrl: url,
+          token: token,
+        ));
+
     final imported = await ref.read(leadSyncProvider).pollNow();
     if (!mounted) return;
     if (imported > 0) {
@@ -617,8 +691,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveAndTestPortalSync() async {
-    _saveSettings();
-    _applyPortalSyncConfig(ref.read(settingsProvider));
+    await _saveSettings();
+
+    final url = _portalSyncUrlCtrl.text.trim();
+    final token = _portalSyncTokenCtrl.text.trim();
+
+    if (url.isEmpty || token.isEmpty) {
+      if (mounted) {
+        ref.read(portalSyncStatusProvider.notifier).state =
+            'Enter the portal URL & token first';
+        showAppSnackbar(context, 'Enter the portal URL & token first',
+            type: AppSnackbarType.error);
+      }
+      return;
+    }
+
+    // Auto-enable portal sync so it survives restart + the periodic timer.
+    await ref
+        .read(settingsProvider.notifier)
+        .save(ref.read(settingsProvider).copyWith(portalSyncEnabled: true));
+
+    final config = PortalSyncConfig(baseUrl: url, token: token);
+    ref.read(portalSyncProvider).configure(config);
+    ref.read(portalEventsProvider).configure(config);
+
     final result = await ref.read(portalSyncProvider).syncNow();
     await ref.read(portalEventsProvider).pullEvents();
     if (!mounted) return;
