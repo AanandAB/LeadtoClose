@@ -166,6 +166,75 @@ class StorageService {
     await _projects.delete(id);
   }
 
+  /// Cascades a project deletion: removes the project plus every record that
+  /// references it — tasks, milestones, time entries, documents, its lifecycle
+  /// checklist, and any invoice/quote/contract/message/event scoped to it.
+  Future<void> deleteProjectCascade(String projectId) async {
+    for (final t in getAllTasks().where((t) => t.projectId == projectId)) {
+      await deleteTask(t.id);
+    }
+    for (final m in getAllMilestones().where((m) => m.projectId == projectId)) {
+      await deleteMilestone(m.id);
+    }
+    for (final t
+        in getAllTimeEntries().where((t) => t.projectId == projectId)) {
+      await deleteTimeEntry(t.id);
+    }
+    for (final d in getAllDocuments().where((d) => d.projectId == projectId)) {
+      await deleteDocument(d.id);
+    }
+    for (final i in getAllInvoices().where((i) => i.projectId == projectId)) {
+      await deleteInvoice(i.id);
+    }
+    for (final q in getAllQuotes().where((q) => q.projectId == projectId)) {
+      await deleteQuote(q.id);
+    }
+    for (final c in getAllContracts().where((c) => c.projectId == projectId)) {
+      await deleteContract(c.id);
+    }
+    for (final c
+        in getAllCommunications().where((c) => c.projectId == projectId)) {
+      await deleteCommunication(c.id);
+    }
+    for (final e in getAllEvents().where((e) => e.projectId == projectId)) {
+      await deleteEvent(e.id);
+    }
+    await deleteChecklist(projectId);
+    await deleteProject(projectId);
+  }
+
+  /// Cascades a client deletion: removes every project for the client (each via
+  /// [deleteProjectCascade]) plus client-scoped records (invoices, quotes,
+  /// contracts, messages, events, documents, coupons) and finally the client.
+  Future<void> deleteClientCascade(String clientId) async {
+    for (final p in getAllProjects().where((p) => p.clientId == clientId)) {
+      await deleteProjectCascade(p.id);
+    }
+    for (final i in getAllInvoices().where((i) => i.clientId == clientId)) {
+      await deleteInvoice(i.id);
+    }
+    for (final q in getAllQuotes().where((q) => q.clientId == clientId)) {
+      await deleteQuote(q.id);
+    }
+    for (final c in getAllContracts().where((c) => c.clientId == clientId)) {
+      await deleteContract(c.id);
+    }
+    for (final c
+        in getAllCommunications().where((c) => c.clientId == clientId)) {
+      await deleteCommunication(c.id);
+    }
+    for (final e in getAllEvents().where((e) => e.clientId == clientId)) {
+      await deleteEvent(e.id);
+    }
+    for (final d in getAllDocuments().where((d) => d.clientId == clientId)) {
+      await deleteDocument(d.id);
+    }
+    for (final c in getAllCoupons().where((c) => c.clientId == clientId)) {
+      await deleteCoupon(c.id);
+    }
+    await deleteClient(clientId);
+  }
+
   // ============ Tasks ============
   List<Task> getAllTasks() {
     return _tasks.values
@@ -329,15 +398,11 @@ class StorageService {
   }
 
   List<AppDocument> getDocumentsByProject(String projectId) {
-    return getAllDocuments()
-        .where((d) => d.projectId == projectId)
-        .toList();
+    return getAllDocuments().where((d) => d.projectId == projectId).toList();
   }
 
   List<AppDocument> getDocumentsByClient(String clientId) {
-    return getAllDocuments()
-        .where((d) => d.clientId == clientId)
-        .toList();
+    return getAllDocuments().where((d) => d.clientId == clientId).toList();
   }
 
   Future<void> saveDocument(AppDocument doc) async {
@@ -357,15 +422,11 @@ class StorageService {
   }
 
   List<Communication> getCommunicationsByClient(String clientId) {
-    return getAllCommunications()
-        .where((c) => c.clientId == clientId)
-        .toList();
+    return getAllCommunications().where((c) => c.clientId == clientId).toList();
   }
 
   List<Communication> getCommunicationsByLead(String leadId) {
-    return getAllCommunications()
-        .where((c) => c.leadId == leadId)
-        .toList();
+    return getAllCommunications().where((c) => c.leadId == leadId).toList();
   }
 
   Future<void> saveCommunication(Communication comm) async {
@@ -412,9 +473,7 @@ class StorageService {
   }
 
   List<Milestone> getMilestonesByProject(String projectId) {
-    return getAllMilestones()
-        .where((m) => m.projectId == projectId)
-        .toList();
+    return getAllMilestones().where((m) => m.projectId == projectId).toList();
   }
 
   Future<void> saveMilestone(Milestone milestone) async {
@@ -448,8 +507,7 @@ class StorageService {
   // ============ Lifecycle Checklists ============
   List<ChecklistInstance> getAllChecklists() {
     return _checklists.values
-        .map((v) =>
-            ChecklistInstance.fromJson(Map<String, dynamic>.from(v)))
+        .map((v) => ChecklistInstance.fromJson(Map<String, dynamic>.from(v)))
         .toList()
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
@@ -507,8 +565,8 @@ class StorageService {
   }
 
   int getOpenLeadCount() {
-    return getAllLeads().where((l) =>
-        l.stage != LeadStage.won && l.stage != LeadStage.lost)
+    return getAllLeads()
+        .where((l) => l.stage != LeadStage.won && l.stage != LeadStage.lost)
         .length;
   }
 }

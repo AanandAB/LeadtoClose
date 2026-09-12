@@ -20,8 +20,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projects = ref.watch(projectsProvider);
-    final active = projects.where((p) => p.status == ProjectStatus.active).length;
-    final completed = projects.where((p) => p.status == ProjectStatus.completed).length;
+    final active =
+        projects.where((p) => p.status == ProjectStatus.active).length;
+    final completed =
+        projects.where((p) => p.status == ProjectStatus.completed).length;
     final overdueCount = projects.where((p) => p.isOverdue).length;
 
     return Padding(
@@ -56,20 +58,34 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             ],
           ),
           const SizedBox(height: 20),
-
           Row(
             children: [
-              StatCard(label: 'Active', value: '$active', color: AppColors.info, icon: Icons.play_circle_outline),
+              StatCard(
+                  label: 'Active',
+                  value: '$active',
+                  color: AppColors.info,
+                  icon: Icons.play_circle_outline),
               const SizedBox(width: 16),
-              StatCard(label: 'Completed', value: '$completed', color: AppColors.success, icon: Icons.check_circle_outline),
+              StatCard(
+                  label: 'Completed',
+                  value: '$completed',
+                  color: AppColors.success,
+                  icon: Icons.check_circle_outline),
               const SizedBox(width: 16),
-              StatCard(label: 'Overdue', value: '$overdueCount', color: AppColors.danger, icon: Icons.warning_amber),
+              StatCard(
+                  label: 'Overdue',
+                  value: '$overdueCount',
+                  color: AppColors.danger,
+                  icon: Icons.warning_amber),
               const SizedBox(width: 16),
-              StatCard(label: 'Total', value: '${projects.length}', color: AppColors.primary, icon: Icons.folder_outlined),
+              StatCard(
+                  label: 'Total',
+                  value: '${projects.length}',
+                  color: AppColors.primary,
+                  icon: Icons.folder_outlined),
             ],
           ),
           const SizedBox(height: 24),
-
           Expanded(
             child: projects.isEmpty
                 ? EmptyState(
@@ -95,10 +111,14 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+          color: selected
+              ? AppColors.primary.withOpacity(0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Icon(icon, size: 18, color: selected ? AppColors.primaryLight : AppColors.textMuted),
+        child: Icon(icon,
+            size: 18,
+            color: selected ? AppColors.primaryLight : AppColors.textMuted),
       ),
     );
   }
@@ -124,17 +144,21 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: s.$3.withOpacity(0.08),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(10)),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 8, height: 8,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: s.$3),
+                        width: 8,
+                        height: 8,
+                        decoration:
+                            BoxDecoration(shape: BoxShape.circle, color: s.$3),
                       ),
                       const SizedBox(width: 8),
                       Text('${s.$2} (${statusProjects.length})',
-                        style: AppTypography.label(context).copyWith(color: s.$3)),
+                          style: AppTypography.label(context)
+                              .copyWith(color: s.$3)),
                     ],
                   ),
                 ),
@@ -143,16 +167,22 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.bgDeep,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+                    borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(10)),
                     border: Border.all(color: AppColors.borderLight),
                   ),
                   child: Column(
                     children: statusProjects.isEmpty
-                        ? [Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text('No projects', style: AppTypography.bodySmall(context)),
-                          )]
-                        : statusProjects.map((p) => _buildProjectCard(p)).toList(),
+                        ? [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text('No projects',
+                                  style: AppTypography.bodySmall(context)),
+                            )
+                          ]
+                        : statusProjects
+                            .map((p) => _buildProjectCard(p))
+                            .toList(),
                   ),
                 ),
               ],
@@ -164,57 +194,67 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   }
 
   Widget _buildProjectCard(Project project) {
-    final progress = project.budget > 0 ? (project.spent / project.budget).clamp(0.0, 1.0) : 0.0;
+    final progress = project.budget > 0
+        ? (project.spent / project.budget).clamp(0.0, 1.0)
+        : 0.0;
 
     return GestureDetector(
       onTap: () => context.go('/project/${project.id}'),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.bgSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(project.name, style: AppTypography.body(context).copyWith(
-            color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13,
-          )),
-          if (project.dueDate != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 10,
-                    color: project.isOverdue ? AppColors.danger : AppColors.textMuted),
-                const SizedBox(width: 4),
-                Text(DateFormat('MMM d').format(project.dueDate!),
-                    style: AppTypography.caption(context).copyWith(
-                      color: project.isOverdue ? AppColors.danger : null,
-                    )),
-              ],
-            ),
-          ],
-          if (project.budget > 0) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: progress, minHeight: 4,
-                backgroundColor: AppColors.bgCard,
-                valueColor: AlwaysStoppedAnimation(
-                  progress > 0.9 ? AppColors.danger : AppColors.primary,
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(project.name,
+                style: AppTypography.body(context).copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                )),
+            if (project.dueDate != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today,
+                      size: 10,
+                      color: project.isOverdue
+                          ? AppColors.danger
+                          : AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Text(DateFormat('MMM d').format(project.dueDate!),
+                      style: AppTypography.caption(context).copyWith(
+                        color: project.isOverdue ? AppColors.danger : null,
+                      )),
+                ],
+              ),
+            ],
+            if (project.budget > 0) ...[
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 4,
+                  backgroundColor: AppColors.bgCard,
+                  valueColor: AlwaysStoppedAnimation(
+                    progress > 0.9 ? AppColors.danger : AppColors.primary,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text('${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
-                style: AppTypography.caption(context)),
+              const SizedBox(height: 4),
+              Text(
+                  '${AppCurrency.format(project.spent)} / ${AppCurrency.format(project.budget)}',
+                  style: AppTypography.caption(context)),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
     );
   }
 
@@ -239,12 +279,19 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p.name, style: AppTypography.body(context).copyWith(
-                      color: AppColors.textPrimary, fontWeight: FontWeight.w600,
-                    )),
+                    Text(p.name,
+                        style: AppTypography.body(context).copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        )),
                     const SizedBox(height: 2),
-                    Text(p.description.isNotEmpty ? p.description : 'No description',
-                        style: AppTypography.bodySmall(context), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                        p.description.isNotEmpty
+                            ? p.description
+                            : 'No description',
+                        style: AppTypography.bodySmall(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
@@ -274,15 +321,21 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               const SizedBox(width: 8),
               PopupMenuButton<String>(
                 padding: EdgeInsets.zero,
-                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                icon:
+                    Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
                 onSelected: (v) => _handleProjectAction(v, p),
                 itemBuilder: (_) => [
                   if (p.status != ProjectStatus.completed)
-                    const PopupMenuItem(value: 'complete', child: Text('Mark as Completed')),
+                    const PopupMenuItem(
+                        value: 'complete', child: Text('Mark as Completed')),
                   if (p.status != ProjectStatus.active)
-                    const PopupMenuItem(value: 'activate', child: Text('Mark as Active')),
+                    const PopupMenuItem(
+                        value: 'activate', child: Text('Mark as Active')),
                   const PopupMenuDivider(),
-                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                  PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete',
+                          style: TextStyle(color: AppColors.danger))),
                 ],
               ),
             ],
@@ -308,13 +361,20 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Project Name *')),
+                TextField(
+                    controller: nameCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Project Name *')),
                 const SizedBox(height: 12),
-                TextField(controller: descCtrl, maxLines: 2,
-                    decoration: const InputDecoration(labelText: 'Description')),
+                TextField(
+                    controller: descCtrl,
+                    maxLines: 2,
+                    decoration:
+                        const InputDecoration(labelText: 'Description')),
                 const SizedBox(height: 12),
-                TextField(controller: budgetCtrl, keyboardType: TextInputType.number,
+                TextField(
+                    controller: budgetCtrl,
+                    keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Budget')),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -334,7 +394,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (nameCtrl.text.trim().isEmpty) return;
@@ -357,27 +418,50 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _handleProjectAction(String action, Project project) {
+  Future<void> _handleProjectAction(String action, Project project) async {
     if (action == 'complete') {
-      ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.completed));
+      ref
+          .read(projectsProvider.notifier)
+          .updateProject(project.copyWith(status: ProjectStatus.completed));
       return;
     }
     if (action == 'activate') {
-      ref.read(projectsProvider.notifier).updateProject(project.copyWith(status: ProjectStatus.active));
+      ref
+          .read(projectsProvider.notifier)
+          .updateProject(project.copyWith(status: ProjectStatus.active));
       return;
     }
     if (action == 'delete') {
-      ref.read(projectsProvider.notifier).deleteProject(project.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Project deleted'),
-            action: SnackBarAction(label: 'Undo', onPressed: () {
-              ref.read(projectsProvider.notifier).addProject(project);
-            }),
-          ),
-        );
-      }
+      final confirmed = await showConfirmDialog(
+        context,
+        title: 'Delete Project',
+        message: 'Delete "${project.name}"? This also removes its tasks, '
+            'milestones, time entries, documents and lifecycle checklist.',
+        confirmLabel: 'Delete',
+        confirmColor: AppColors.danger,
+      );
+      if (!confirmed || !mounted) return;
+
+      await ref.read(projectsProvider.notifier).deleteProject(project.id);
+      if (!mounted) return;
+      _refreshAfterProjectDelete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Project and related data deleted')),
+      );
     }
+  }
+
+  /// Re-read project-scoped providers from storage after a cascading delete.
+  void _refreshAfterProjectDelete() {
+    ref.invalidate(tasksProvider);
+    ref.invalidate(milestonesProvider);
+    ref.invalidate(timeEntriesProvider);
+    ref.invalidate(documentsProvider);
+    ref.invalidate(checklistsProvider);
+    ref.invalidate(invoicesProvider);
+    ref.invalidate(quotesProvider);
+    ref.invalidate(contractsProvider);
+    ref.invalidate(communicationsProvider);
+    ref.invalidate(eventsProvider);
   }
 }

@@ -21,11 +21,10 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
   Widget build(BuildContext context) {
     final clients = ref.watch(clientsProvider);
     final filtered = clients.where((c) {
-      final matchesSearch = c.companyName
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
-          c.contacts.any((ct) =>
-              ct.name.toLowerCase().contains(_searchQuery.toLowerCase()));
+      final matchesSearch =
+          c.companyName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              c.contacts.any((ct) =>
+                  ct.name.toLowerCase().contains(_searchQuery.toLowerCase()));
       final matchesHealth =
           _healthFilter == 'all' || c.healthScore == _healthFilter;
       return matchesSearch && matchesHealth;
@@ -63,8 +62,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   onChanged: (v) => setState(() => _searchQuery = v),
                   decoration: InputDecoration(
                     hintText: 'Search clients...',
-                    prefixIcon:
-                        const Icon(Icons.search, size: 20),
+                    prefixIcon: const Icon(Icons.search, size: 20),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 10),
                     border: OutlineInputBorder(
@@ -88,8 +86,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                 ? EmptyState(
                     icon: Icons.people_outline_rounded,
                     title: 'No clients yet',
-                    subtitle:
-                        'Add your first client to get started',
+                    subtitle: 'Add your first client to get started',
                     actionLabel: 'Add Client',
                     onAction: () => _showAddClientDialog(context),
                   )
@@ -111,25 +108,20 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _healthFilter = value),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.primary.withOpacity(0.15)
                 : AppColors.bgCard,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.borderLight,
+              color: selected ? AppColors.primary : AppColors.borderLight,
             ),
           ),
           child: Text(
             label,
             style: AppTypography.label(context).copyWith(
-              color: selected
-                  ? AppColors.primaryLight
-                  : AppColors.textMuted,
+              color: selected ? AppColors.primaryLight : AppColors.textMuted,
               fontSize: 12,
             ),
           ),
@@ -148,111 +140,146 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
     return GestureDetector(
       onTap: () => context.go('/client/${client.id}'),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColors.info.withOpacity(0.15),
-            child: Text(
-              client.companyName[0].toUpperCase(),
-              style: AppTypography.heading2(context).copyWith(
-                color: AppColors.infoLight,
-                fontSize: 16,
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.info.withOpacity(0.15),
+              child: Text(
+                client.companyName[0].toUpperCase(),
+                style: AppTypography.heading2(context).copyWith(
+                  color: AppColors.infoLight,
+                  fontSize: 16,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  client.companyName,
-                  style: AppTypography.body(context).copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                if (client.primaryContact != null)
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '${client.primaryContact!.name} · ${client.primaryContact!.email}',
-                    style: AppTypography.bodySmall(context),
+                    client.companyName,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 2),
+                  if (client.primaryContact != null)
+                    Text(
+                      '${client.primaryContact!.name} · ${client.primaryContact!.email}',
+                      style: AppTypography.bodySmall(context),
+                    ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: healthColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    client.healthScore.toUpperCase(),
+                    style: AppTypography.caption(context).copyWith(
+                      color: healthColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 9,
+                    ),
+                  ),
+                ),
+                if (client.totalRevenue > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    AppCurrency.format(client.totalRevenue),
+                    style: AppTypography.label(context).copyWith(
+                      color: AppColors.revenue,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: healthColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  client.healthScore.toUpperCase(),
-                  style: AppTypography.caption(context).copyWith(
-                    color: healthColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 9,
-                  ),
-                ),
-              ),
-              if (client.totalRevenue > 0) ...[
-                const SizedBox(height: 4),
-                Text(
-                  AppCurrency.format(client.totalRevenue),
-                  style: AppTypography.label(context).copyWith(
-                    color: AppColors.revenue,
-                  ),
-                ),
+            PopupMenuButton<String>(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+              onSelected: (v) => _handleClientAction(v, client),
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete',
+                        style: TextStyle(color: AppColors.danger))),
               ],
-            ],
-          ),
-          PopupMenuButton<String>(
-            padding: EdgeInsets.zero,
-            icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
-            onSelected: (v) => _handleClientAction(v, client),
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuDivider(),
-              PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 
-  void _handleClientAction(String action, Client client) {
+  Future<void> _handleClientAction(String action, Client client) async {
     if (action == 'edit') {
       context.go('/client/${client.id}');
       return;
     }
     if (action == 'delete') {
-      ref.read(clientsProvider.notifier).deleteClient(client.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Client deleted'),
-            action: SnackBarAction(label: 'Undo', onPressed: () {
-              ref.read(clientsProvider.notifier).addClient(client);
-            }),
-          ),
-        );
-      }
+      final projectCount = ref
+          .read(projectsProvider)
+          .where((p) => p.clientId == client.id)
+          .length;
+      final invoiceCount = ref
+          .read(invoicesProvider)
+          .where((i) => i.clientId == client.id)
+          .length;
+      final confirmed = await showConfirmDialog(
+        context,
+        title: 'Delete Client',
+        message: 'Delete "${client.companyName}"? This also removes '
+            '$projectCount project(s) and $invoiceCount invoice(s) along with '
+            'all related tasks, milestones, proposals, messages, events and '
+            'lifecycle checklists.',
+        confirmLabel: 'Delete',
+        confirmColor: AppColors.danger,
+      );
+      if (!confirmed || !mounted) return;
+
+      await ref.read(clientsProvider.notifier).deleteClient(client.id);
+      if (!mounted) return;
+      _refreshAfterClientDelete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Client and related data deleted')),
+      );
     }
+  }
+
+  /// Re-read all data providers from storage after a cascading delete, so no
+  /// orphaned records linger in the in-memory lists.
+  void _refreshAfterClientDelete() {
+    ref.invalidate(projectsProvider);
+    ref.invalidate(tasksProvider);
+    ref.invalidate(milestonesProvider);
+    ref.invalidate(timeEntriesProvider);
+    ref.invalidate(documentsProvider);
+    ref.invalidate(invoicesProvider);
+    ref.invalidate(quotesProvider);
+    ref.invalidate(contractsProvider);
+    ref.invalidate(communicationsProvider);
+    ref.invalidate(eventsProvider);
+    ref.invalidate(referralCouponsProvider);
+    ref.invalidate(checklistsProvider);
   }
 
   void _showAddClientDialog(BuildContext context) {
@@ -318,8 +345,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                         value: 'E-commerce', child: Text('E-commerce')),
                     DropdownMenuItem(
                         value: 'Healthcare', child: Text('Healthcare')),
-                    DropdownMenuItem(
-                        value: 'Finance', child: Text('Finance')),
+                    DropdownMenuItem(value: 'Finance', child: Text('Finance')),
                     DropdownMenuItem(
                         value: 'Education', child: Text('Education')),
                     DropdownMenuItem(value: 'Other', child: Text('Other')),

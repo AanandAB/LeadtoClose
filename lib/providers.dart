@@ -241,9 +241,9 @@ class ClientsNotifier extends StateNotifier<List<Client>> {
     refresh();
   }
 
-  void deleteClient(String id) {
+  Future<void> deleteClient(String id) async {
     state = state.where((c) => c.id != id).toList();
-    _storage.deleteClient(id);
+    await _storage.deleteClientCascade(id);
   }
 }
 
@@ -272,9 +272,9 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
     refresh();
   }
 
-  void deleteProject(String id) {
+  Future<void> deleteProject(String id) async {
     state = state.where((p) => p.id != id).toList();
-    _storage.deleteProject(id);
+    await _storage.deleteProjectCascade(id);
   }
 
   List<Project> getByStatus(ProjectStatus status) {
