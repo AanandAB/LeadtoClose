@@ -4,14 +4,14 @@
 [Setup]
 AppId={{e553e3f8-5c5e-4d84-87cb-3c693de1b5e7}
 AppName=FreelanceHub
-AppVersion=2.5.0
+AppVersion=2.5.1
 AppPublisher=Aanand AB
 AppPublisherURL=https://github.com/AanandAB
 DefaultDirName={localappdata}\FreelanceHub
 DefaultGroupName=FreelanceHub
 DisableProgramGroupPage=yes
 OutputDir=installer
-OutputBaseFilename=FreelanceHub_Setup_v2.5.0
+OutputBaseFilename=FreelanceHub_Setup_v2.5.1
 Compression=lzma2
 SolidCompression=yes
 SetupIconFile=windows\runner\resources\app_icon.ico
