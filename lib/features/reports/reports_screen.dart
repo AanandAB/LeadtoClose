@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
+import '../../core/money.dart';
 import '../../models/lead.dart';
 import '../../models/invoice.dart';
 import '../../models/project.dart';
@@ -23,10 +24,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final clients = ref.watch(clientsProvider);
 
     // Revenue metrics
-    final totalRevenue = invoices.where((i) => i.status == 'paid').fold(0.0, (s, i) => s + i.total);
-    final outstanding = invoices.where((i) => i.status != 'paid' && i.status != 'cancelled').fold(0.0, (s, i) => s + i.balanceDue);
-    final overdue = invoices.where((i) => i.isOverdue).fold(0.0, (s, i) => s + i.balanceDue);
-    final avgInvoice = invoices.isNotEmpty ? totalRevenue / invoices.where((i) => i.status == 'paid').length : 0.0;
+    final totalRevenue = MoneyTotals.grouped(invoices.where((i) => i.status == 'paid'), (i) => i.total);
+    final outstanding = MoneyTotals.grouped(invoices.where((i) => i.status == 'active'), (i) => i.balanceDue);
+    final overdue = MoneyTotals.grouped(invoices.where((i) => i.isOverdue), (i) => i.balanceDue);
+    final basePaid = invoices.where((i) => i.status == 'paid' && i.currency == AppCurrency.code).toList();
+    final avgInvoice = basePaid.isEmpty ? 0.0 : basePaid.fold(0.0, (s, i) => s + i.total) / basePaid.length;
+    final totalCommission = clients.fold(0.0, (s, c) => s + c.commissionAmount);
+    final grossByCurrency = <String, double>{};
+    for (final i in invoices.where((i) => i.status == 'paid')) {
+      grossByCurrency[i.currency] = (grossByCurrency[i.currency] ?? 0) + i.total;
+    }
+    grossByCurrency[AppCurrency.code] =
+        (grossByCurrency[AppCurrency.code] ?? 0) - totalCommission;
+    final netRevenue = MoneyTotals.fromMap(grossByCurrency);
 
     // Pipeline metrics
     final totalLeads = leads.length;
@@ -50,14 +60,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           // Revenue section
           _sectionHeader('Revenue Overview'),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
             children: [
-              StatCard(label: 'Total Revenue', value: _fmt(totalRevenue), color: AppColors.success, icon: Icons.trending_up),
-              const SizedBox(width: 16),
-              StatCard(label: 'Outstanding', value: _fmt(outstanding), color: AppColors.warning, icon: Icons.schedule),
-              const SizedBox(width: 16),
-              StatCard(label: 'Overdue', value: _fmt(overdue), color: AppColors.danger, icon: Icons.warning_amber),
-              const SizedBox(width: 16),
+              StatCard(label: 'Total Revenue', value: totalRevenue, color: AppColors.success, icon: Icons.trending_up),
+              StatCard(label: 'Net Revenue', value: netRevenue, color: AppColors.primary, icon: Icons.account_balance_wallet),
+              StatCard(label: 'Commission', value: AppCurrency.formatCompact(totalCommission), color: AppColors.textMuted, icon: Icons.handshake_outlined),
+              StatCard(label: 'Outstanding', value: outstanding, color: AppColors.warning, icon: Icons.schedule),
+              StatCard(label: 'Overdue', value: overdue, color: AppColors.danger, icon: Icons.warning_amber),
               StatCard(label: 'Avg Invoice', value: _fmt(avgInvoice), color: AppColors.info, icon: Icons.receipt),
             ],
           ),

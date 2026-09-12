@@ -212,7 +212,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       Icon(Icons.receipt_long, size: 14, color: AppTheme.statusColor(inv.status)),
                       const SizedBox(width: 8),
                       Expanded(child: Text(inv.number, style: AppTypography.bodySmall(context))),
-                      Text(AppCurrency.format(inv.total), style: AppTypography.label(context).copyWith(fontSize: 11)),
+                      Text(AppCurrency.formatFor(inv.currency, inv.total), style: AppTypography.label(context).copyWith(fontSize: 11)),
                     ],
                   ),
                 )),

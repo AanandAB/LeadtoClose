@@ -201,7 +201,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                AppCurrency.format(quote.total),
+                AppCurrency.formatFor(quote.currency, quote.total),
                 style: AppTypography.price(context).copyWith(fontSize: 16),
               ),
               const SizedBox(height: 4),
@@ -254,7 +254,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printProposal(quote, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: AppCurrency.symbol);
+      PdfService.printProposal(quote, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: quote.currency);
       return;
     }
     if (action == 'delete') {
@@ -533,6 +533,7 @@ class _ProposalsScreenState extends ConsumerState<ProposalsScreen> {
                       'PROP-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   title: titleCtrl.text.trim(),
                   clientId: selectedClientId ?? '',
+                  currency: AppCurrency.code,
                   status: 'draft',
                   lineItems: lineItems.map((li) => QuoteLineItem(
                     id: li.id,

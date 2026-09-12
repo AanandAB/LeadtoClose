@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 import '../../models/app_settings.dart';
+import '../../models/lead.dart';
 import '../../providers.dart';
+import '../../services/lead_sync_service.dart';
+import '../../services/portal_sync_service.dart';
+import '../../widgets/app_snackbars.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -20,6 +24,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _websiteCtrl;
   late TextEditingController _addressCtrl;
   late TextEditingController _taxRateCtrl;
+  late TextEditingController _leadSyncUrlCtrl;
+  late TextEditingController _leadSyncTokenCtrl;
+  late TextEditingController _portalSyncUrlCtrl;
+  late TextEditingController _portalSyncTokenCtrl;
+  late TextEditingController _studioWhatsappCtrl;
   String _currency = AppCurrency.code;
   String _paymentTerms = 'Net 30';
 
@@ -34,6 +43,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _websiteCtrl = TextEditingController(text: settings.website);
     _addressCtrl = TextEditingController(text: settings.address);
     _taxRateCtrl = TextEditingController(text: settings.defaultTaxRate.toString());
+    _leadSyncUrlCtrl = TextEditingController(text: settings.leadSyncUrl);
+    _leadSyncTokenCtrl = TextEditingController(text: settings.leadSyncToken);
+    _portalSyncUrlCtrl = TextEditingController(text: settings.portalSyncUrl);
+    _portalSyncTokenCtrl = TextEditingController(text: settings.portalSyncToken);
+    _studioWhatsappCtrl =
+        TextEditingController(text: settings.studioWhatsappNumber);
     _currency = settings.currency;
     _paymentTerms = settings.defaultPaymentTerms;
   }
@@ -47,6 +62,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _websiteCtrl.dispose();
     _addressCtrl.dispose();
     _taxRateCtrl.dispose();
+    _leadSyncUrlCtrl.dispose();
+    _leadSyncTokenCtrl.dispose();
+    _portalSyncUrlCtrl.dispose();
+    _portalSyncTokenCtrl.dispose();
+    _studioWhatsappCtrl.dispose();
     super.dispose();
   }
 
@@ -162,6 +182,225 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _integrationCard('Google Calendar', 'Sync events with Google Calendar', Icons.calendar_today, AppColors.success, settings.integrations.contains('google_calendar')),
               _integrationCard('Slack', 'Get notifications in Slack', Icons.notifications_active, AppColors.warning, settings.integrations.contains('slack')),
               _integrationCard('GitHub', 'Link repos to projects', Icons.code, AppColors.textSecondary, settings.integrations.contains('github')),
+              const SizedBox(height: 32),
+
+              // Live Lead Sync (Cloudflare)
+              _section('Live Lead Sync'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryTint,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.cloud_sync_rounded,
+                              color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Website → App live pipeline',
+                                  style: AppTypography.body(context).copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  )),
+                              Text(
+                                'Polls the Cloudflare lead worker and imports new website leads automatically.',
+                                style: AppTypography.bodySmall(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: settings.leadSyncEnabled,
+                          onChanged: (v) {
+                            ref.read(settingsProvider.notifier).save(
+                                  settings.copyWith(leadSyncEnabled: v),
+                                );
+                            if (v) {
+                              _applySyncConfig(settings.copyWith(leadSyncEnabled: v));
+                              showAppSnackbar(context, 'Live lead sync enabled',
+                                  type: AppSnackbarType.success);
+                            }
+                          },
+                          activeColor: AppColors.success,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _leadSyncUrlCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Worker base URL',
+                        hintText: 'https://bitnexel-leads.<account>.workers.dev',
+                        prefixIcon: Icon(Icons.link, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _leadSyncTokenCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Sync token (LEAD_SYNC_TOKEN)',
+                        prefixIcon: Icon(Icons.key_rounded, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _studioWhatsappCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Studio WhatsApp number (digits only)',
+                        prefixIcon: Icon(Icons.chat_rounded, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _saveAndTestSync,
+                          icon: const Icon(Icons.sync_rounded, size: 18),
+                          label: const Text('Save & Sync Now'),
+                        ),
+                        const SizedBox(width: 16),
+                        Builder(builder: (context) {
+                          final last = ref.watch(lastSyncProvider);
+                          final error = ref.watch(syncErrorProvider);
+                          return Expanded(
+                            child: Text(
+                              error ??
+                                  (last != null
+                                      ? 'Last sync: ${last.toLocal().toIso8601String().substring(0, 19)}'
+                                      : 'Never synced'),
+                              style: AppTypography.caption(context).copyWith(
+                                color: error != null
+                                    ? Colors.redAccent
+                                    : AppColors.textMuted,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Client Portal Sync (CRM -> portal)
+              _section('Client Portal Sync'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryTint,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.web_asset_rounded,
+                              color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('CRM -> Client portal push',
+                                  style: AppTypography.body(context).copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  )),
+                              Text(
+                                'Pushes your clients, projects and milestones to the Bitnexel client portal (D1).',
+                                style: AppTypography.bodySmall(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: settings.portalSyncEnabled,
+                          onChanged: (v) {
+                            ref.read(settingsProvider.notifier).save(
+                                  settings.copyWith(portalSyncEnabled: v),
+                                );
+                            if (v) {
+                              _applyPortalSyncConfig(
+                                  settings.copyWith(portalSyncEnabled: v));
+                            }
+                          },
+                          activeColor: AppColors.success,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _portalSyncUrlCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Portal API base URL',
+                        hintText: 'https://api.bitnexel.in',
+                        prefixIcon: Icon(Icons.link, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _portalSyncTokenCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Sync token (PORTAL_SYNC_TOKEN)',
+                        prefixIcon: Icon(Icons.key_rounded, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _saveAndTestPortalSync,
+                          icon: const Icon(Icons.cloud_upload_rounded, size: 18),
+                          label: const Text('Save & Sync Now'),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            ref.watch(portalSyncStatusProvider) ??
+                                'Not synced yet',
+                            style: AppTypography.caption(context).copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 32),
 
               // About
@@ -319,21 +558,83 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _saveSettings() {
     final current = ref.read(settingsProvider);
-    ref.read(settingsProvider.notifier).save(
-          current.copyWith(
-            businessName: _businessNameCtrl.text.trim(),
-            ownerName: _ownerNameCtrl.text.trim(),
-            email: _emailCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim(),
-            website: _websiteCtrl.text.trim(),
-            address: _addressCtrl.text.trim(),
-            currency: _currency,
-            defaultPaymentTerms: _paymentTerms,
-            defaultTaxRate: double.tryParse(_taxRateCtrl.text) ?? 0,
-          ),
-        );
+    final updated = current.copyWith(
+      businessName: _businessNameCtrl.text.trim(),
+      ownerName: _ownerNameCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      website: _websiteCtrl.text.trim(),
+      address: _addressCtrl.text.trim(),
+      currency: _currency,
+      defaultPaymentTerms: _paymentTerms,
+      defaultTaxRate: double.tryParse(_taxRateCtrl.text) ?? 0,
+      leadSyncUrl: _leadSyncUrlCtrl.text.trim(),
+      leadSyncToken: _leadSyncTokenCtrl.text.trim(),
+      portalSyncUrl: _portalSyncUrlCtrl.text.trim(),
+      portalSyncToken: _portalSyncTokenCtrl.text.trim(),
+      studioWhatsappNumber: _studioWhatsappCtrl.text.trim(),
+    );
+    ref.read(settingsProvider.notifier).save(updated);
+    _applySyncConfig(updated);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Settings saved')),
     );
+  }
+
+  void _applySyncConfig(AppSettings settings) {
+    if (!settings.leadSyncEnabled || settings.leadSyncUrl.isEmpty) return;
+    ref.read(leadSyncProvider).configure(LeadSyncConfig(
+          baseUrl: settings.leadSyncUrl,
+          token: settings.leadSyncToken,
+        ));
+  }
+
+  Future<void> _saveAndTestSync() async {
+    _saveSettings();
+    final imported = await ref.read(leadSyncProvider).pollNow();
+    if (!mounted) return;
+    if (imported > 0) {
+      showAppSnackbar(context, '$imported new lead(s) imported',
+          type: AppSnackbarType.success);
+    } else {
+      final error = ref.read(syncErrorProvider);
+      showAppSnackbar(
+        context,
+        error ?? 'No new leads right now — pipeline healthy.',
+        type: error != null ? AppSnackbarType.error : AppSnackbarType.info,
+      );
+    }
+  }
+
+  void _applyPortalSyncConfig(AppSettings settings) {
+    if (!settings.portalSyncEnabled || settings.portalSyncUrl.isEmpty) return;
+    final config = PortalSyncConfig(
+      baseUrl: settings.portalSyncUrl,
+      token: settings.portalSyncToken,
+    );
+    ref.read(portalSyncProvider).configure(config);
+    ref.read(portalEventsProvider).configure(config);
+  }
+
+  Future<void> _saveAndTestPortalSync() async {
+    _saveSettings();
+    _applyPortalSyncConfig(ref.read(settingsProvider));
+    final result = await ref.read(portalSyncProvider).syncNow();
+    await ref.read(portalEventsProvider).pullEvents();
+    if (!mounted) return;
+    if (result.ok) {
+      ref.read(portalSyncStatusProvider.notifier).state =
+          'Synced ${result.clients} clients · ${result.projects} projects · ${result.milestones} milestones';
+      showAppSnackbar(
+        context,
+        'Portal synced: ${result.projects} project(s)',
+        type: AppSnackbarType.success,
+      );
+    } else {
+      ref.read(portalSyncStatusProvider.notifier).state =
+          'Sync failed — check URL & token';
+      showAppSnackbar(context, 'Portal sync failed — check URL & token',
+          type: AppSnackbarType.error);
+    }
   }
 }

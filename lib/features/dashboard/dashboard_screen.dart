@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../../core/glass.dart';
+import '../../core/money.dart';
 import '../../models/lead.dart';
 import '../../providers.dart';
 import '../../widgets/shared_widgets.dart';
@@ -25,22 +27,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final settings = ref.watch(settingsProvider);
 
     final activeLeads = leads
+        .where((l) => l.stage != LeadStage.won && l.stage != LeadStage.lost)
+        .length;
+    final websiteLeads = leads
         .where((l) =>
-            l.stage != LeadStage.won && l.stage != LeadStage.lost)
+            l.source.toLowerCase().contains('website') ||
+            l.source.toLowerCase().contains('wizard'))
         .length;
     final wonLeads = leads.where((l) => l.stage == LeadStage.won).length;
     final overdueLeads =
         leads.where((l) => l.followUpDate != null && l.isOverdue).length;
 
-    final totalRevenue = invoices
-        .where((i) => i.status == 'paid')
-        .fold(0.0, (sum, i) => sum + i.total);
-    final outstanding = invoices
-        .where((i) => i.status != 'paid' && i.status != 'cancelled')
-        .fold(0.0, (sum, i) => sum + i.balanceDue);
-    final overdueAmount = invoices
-        .where((i) => i.isOverdue)
-        .fold(0.0, (sum, i) => sum + i.balanceDue);
+    final totalRevenue = MoneyTotals.grouped(
+        invoices.where((i) => i.status == 'paid'), (i) => i.total);
+    final outstanding = MoneyTotals.grouped(
+        invoices.where((i) => i.status == 'active'), (i) => i.balanceDue);
+    final overdueAmount = MoneyTotals.grouped(
+        invoices.where((i) => i.isOverdue), (i) => i.balanceDue);
+    final hasOverdueInvoices = invoices.any((i) => i.isOverdue);
+    final totalCommission = clients.fold(0.0, (s, c) => s + c.commissionAmount);
+    final grossByCurrency = <String, double>{};
+    for (final i in invoices.where((i) => i.status == 'paid')) {
+      grossByCurrency[i.currency] =
+          (grossByCurrency[i.currency] ?? 0) + i.total;
+    }
+    grossByCurrency[AppCurrency.code] =
+        (grossByCurrency[AppCurrency.code] ?? 0) - totalCommission;
+    final netRevenue = MoneyTotals.fromMap(grossByCurrency);
 
     final activeProjects =
         projects.where((p) => p.status.name == 'active').length;
@@ -119,7 +132,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 child: StatCard(
                   label: 'Total Revenue',
-                  value: _formatNumber(totalRevenue),
+                  value: totalRevenue,
                   color: AppColors.revenue,
                   icon: Icons.trending_up_rounded,
                 ),
@@ -127,8 +140,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: StatCard(
+                  label: 'Net Revenue',
+                  value: netRevenue,
+                  color: AppColors.success,
+                  icon: Icons.account_balance_wallet_rounded,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
+                  label: 'Commission',
+                  value: AppCurrency.formatCompact(totalCommission),
+                  color: AppColors.textMuted,
+                  icon: Icons.handshake_outlined,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
                   label: 'Outstanding',
-                  value: _formatNumber(outstanding),
+                  value: outstanding,
                   color: AppColors.warning,
                   icon: Icons.schedule_rounded,
                 ),
@@ -137,18 +168,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Expanded(
                 child: StatCard(
                   label: 'Overdue',
-                  value: _formatNumber(overdueAmount),
+                  value: overdueAmount,
                   color: AppColors.danger,
                   icon: Icons.warning_amber_rounded,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: StatCard(
-                  label: 'Active Projects',
-                  value: '$activeProjects',
-                  color: AppColors.info,
-                  icon: Icons.folder_open_rounded,
                 ),
               ),
             ],
@@ -171,6 +193,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   'Won Deals',
                   '$wonLeads',
                   AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  'Website Leads',
+                  '$websiteLeads',
+                  AppColors.info,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _miniStat(
+                  'Active Projects',
+                  '$activeProjects',
+                  AppColors.info,
                 ),
               ),
               const SizedBox(width: 12),
@@ -200,8 +238,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               // Needs Attention
               Expanded(
                 flex: 3,
-                child: _buildNeedsAttention(
-                    context, overdueLeads, overdueAmount, pendingQuotes),
+                child: _buildNeedsAttention(context, overdueLeads,
+                    hasOverdueInvoices, overdueAmount, pendingQuotes),
               ),
               const SizedBox(width: 20),
               // Right column
@@ -225,13 +263,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _miniStat(String label, String value, Color color) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+      borderRadius: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -262,17 +296,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildNeedsAttention(
     BuildContext context,
     int overdueLeads,
-    double overdueAmount,
+    bool hasOverdueInvoices,
+    String overdueAmount,
     int pendingQuotes,
   ) {
     final items = <_ActionItem>[];
 
-    if (overdueAmount > 0) {
+    if (hasOverdueInvoices) {
       items.add(_ActionItem(
         Icons.warning_amber_rounded,
         AppColors.danger,
         'Overdue Invoices',
-        '${_formatNumber(overdueAmount)} needs attention',
+        '$overdueAmount needs attention',
       ));
     }
 
@@ -303,13 +338,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ));
     }
 
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -369,13 +399,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildUpcomingEvents(
       BuildContext context, List<dynamic> upcomingEvents) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -441,13 +466,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildRecentLeads(BuildContext context, List<Lead> recentLeads) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -477,8 +497,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor:
-                            AppColors.primary.withOpacity(0.15),
+                        backgroundColor: AppColors.primary.withOpacity(0.15),
                         child: Text(
                           lead.name[0].toUpperCase(),
                           style: AppTypography.label(context).copyWith(
@@ -527,10 +546,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (hour < 12) return 'Morning';
     if (hour < 17) return 'Afternoon';
     return 'Evening';
-  }
-
-  String _formatNumber(double value) {
-    return AppCurrency.formatCompact(value);
   }
 }
 

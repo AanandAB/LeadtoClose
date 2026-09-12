@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
+import '../../core/glass.dart';
 import '../../widgets/sidebar.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../pipeline/pipeline_screen.dart';
@@ -12,6 +14,7 @@ import '../communication/communication_hub_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../documents/documents_screen.dart';
 import '../reports/reports_screen.dart';
+import '../checklists/checklists_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -26,14 +29,20 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
+      body: Stack(
         children: [
-          AppSidebar(
-            currentTab: _currentTab,
-            onTabChanged: (tab) => setState(() => _currentTab = tab),
-          ),
-          Expanded(
-            child: _buildContent(),
+          Container(color: AppColors.bgDeep),
+          const Positioned.fill(child: AmbientBackground()),
+          Row(
+            children: [
+              AppSidebar(
+                currentTab: _currentTab,
+                onTabChanged: (tab) => setState(() => _currentTab = tab),
+              ),
+              Expanded(
+                child: _buildContent(),
+              ),
+            ],
           ),
         ],
       ),
@@ -66,6 +75,8 @@ class _MainShellState extends State<MainShell> {
         return const DocumentsScreen();
       case 11:
         return const ReportsScreen();
+      case 12:
+        return const ChecklistsScreen();
       default:
         return const DashboardScreen();
     }

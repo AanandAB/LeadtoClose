@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.leadtoclose" "\0"
-            VALUE "FileDescription", "leadtoclose" "\0"
+            VALUE "CompanyName", "Aanand AB" "\0"
+            VALUE "FileDescription", "FreelanceHub" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "leadtoclose" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.leadtoclose. All rights reserved." "\0"
-            VALUE "OriginalFilename", "leadtoclose.exe" "\0"
-            VALUE "ProductName", "leadtoclose" "\0"
+            VALUE "InternalName", "freelancehub" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Aanand AB. All rights reserved." "\0"
+            VALUE "OriginalFilename", "freelancehub.exe" "\0"
+            VALUE "ProductName", "FreelanceHub" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

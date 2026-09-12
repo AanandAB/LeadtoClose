@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../../core/money.dart';
 import '../../models/invoice.dart';
 import '../../providers.dart';
 import '../../services/pdf_service.dart';
@@ -24,15 +25,12 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         ? invoices
         : invoices.where((i) => i.status == _statusFilter).toList();
 
-    final totalRevenue = invoices
-        .where((i) => i.status == 'paid')
-        .fold(0.0, (s, i) => s + i.total);
-    final outstanding = invoices
-        .where((i) => i.status != 'paid' && i.status != 'cancelled')
-        .fold(0.0, (s, i) => s + i.balanceDue);
-    final overdue = invoices
-        .where((i) => i.isOverdue)
-        .fold(0.0, (s, i) => s + i.balanceDue);
+    final totalRevenue =
+        MoneyTotals.grouped(invoices.where((i) => i.status == 'paid'), (i) => i.total);
+    final outstanding = MoneyTotals.grouped(
+        invoices.where((i) => i.status == 'active'), (i) => i.balanceDue);
+    final overdue =
+        MoneyTotals.grouped(invoices.where((i) => i.isOverdue), (i) => i.balanceDue);
     final paidCount = invoices.where((i) => i.status == 'paid').length;
 
     return Padding(
@@ -56,19 +54,19 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             children: [
               StatCard(
                   label: 'Paid',
-                  value: _fmt(totalRevenue),
+                  value: totalRevenue,
                   color: AppColors.success,
                   icon: Icons.check_circle_outline),
               const SizedBox(width: 16),
               StatCard(
                   label: 'Outstanding',
-                  value: _fmt(outstanding),
+                  value: outstanding,
                   color: AppColors.warning,
                   icon: Icons.schedule_rounded),
               const SizedBox(width: 16),
               StatCard(
                   label: 'Overdue',
-                  value: _fmt(overdue),
+                  value: overdue,
                   color: AppColors.danger,
                   icon: Icons.warning_amber),
               const SizedBox(width: 16),
@@ -139,7 +137,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
   Widget _buildInvoiceCard(BuildContext context, Invoice invoice) {
     final statusColor = AppTheme.statusColor(invoice.status);
-    final symbol = AppCurrency.symbol;
+    final symbol = AppCurrency.symbolFor(invoice.currency);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -268,7 +266,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printInvoice(invoice, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: AppCurrency.symbol);
+      PdfService.printInvoice(invoice, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: invoice.currency);
       return;
     }
     if (action == 'delete') {
@@ -291,6 +289,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     String selectedCurrency = invoice.currency;
     String paymentTerms = invoice.paymentTerms;
     String editStatus = invoice.status;
+    String discountType = invoice.discount > 0 ? 'fixed' : 'none';
+    final discountCtrl = TextEditingController(
+        text: invoice.discount > 0 ? invoice.discount.toStringAsFixed(2) : '');
+    String? selectedCouponId;
+    String appliedCouponCode = invoice.couponCode;
     final items = invoice.lineItems.map((item) {
       final e = _InvoiceLineItem();
       e.descCtrl.text = item.description;
@@ -414,7 +417,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: AppCurrency.symbol,
+                                prefixText: AppCurrency.symbolFor(selectedCurrency),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -436,27 +439,125 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                     decoration: const InputDecoration(labelText: 'Notes'),
                   ),
                   const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: discountType,
+                          decoration: const InputDecoration(labelText: 'Discount'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                          ],
+                          onChanged: (v) => setDialogState(() => discountType = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: discountCtrl,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          enabled: discountType != 'none',
+                          decoration: InputDecoration(
+                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                          ),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final coupons = ref
+                          .watch(referralCouponsProvider)
+                          .where((c) => c.clientId == invoice.clientId && c.isActive)
+                          .toList();
+                      if (coupons.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: DropdownButtonFormField<String?>(
+                          value: selectedCouponId,
+                          decoration: const InputDecoration(
+                              labelText: 'Apply Referral Coupon',
+                              prefixIcon: Icon(Icons.card_giftcard, size: 18)),
+                          dropdownColor: AppColors.bgCard,
+                          items: [
+                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            ...coupons.map((c) => DropdownMenuItem<String?>(
+                                  value: c.id,
+                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                )),
+                          ],
+                          onChanged: (v) {
+                            setDialogState(() {
+                              selectedCouponId = v;
+                              appliedCouponCode = '';
+                              if (v != null) {
+                                final c = coupons.firstWhere((x) => x.id == v);
+                                discountType = c.type;
+                                discountCtrl.text = c.value.toStringAsFixed(0);
+                                appliedCouponCode = c.code;
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   // Total preview
                   Consumer(
                     builder: (context, ref, _) {
-                      double total = 0;
+                      double subtotal = 0;
                       for (final item in items) {
                         final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
                         final price = double.tryParse(item.priceCtrl.text) ?? 0;
-                        total += qty * price;
+                        subtotal += qty * price;
                       }
+                      double discount = 0;
+                      if (discountType == 'percentage') {
+                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                      } else if (discountType == 'fixed') {
+                        discount = double.tryParse(discountCtrl.text) ?? 0;
+                      }
+                      final total = subtotal - discount;
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.primaryTint,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text('Total', style: AppTypography.heading2(context)),
-                            Text(AppCurrency.formatDecimal(total),
-                                style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Subtotal', style: AppTypography.body(context)),
+                                Text(AppCurrency.formatDecimalFor(selectedCurrency, subtotal),
+                                    style: AppTypography.body(context)),
+                              ],
+                            ),
+                            if (discount > 0)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Discount', style: AppTypography.body(context)),
+                                  Text('-${AppCurrency.formatDecimalFor(selectedCurrency, discount)}',
+                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                ],
+                              ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Total', style: AppTypography.heading2(context)),
+                                Text(AppCurrency.formatDecimalFor(selectedCurrency, total),
+                                    style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                              ],
+                            ),
                           ],
                         ),
                       );
@@ -475,10 +576,19 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
                   rate: double.tryParse(i.priceCtrl.text) ?? 0,
                 )).toList();
-                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final subtotal = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                double discount = 0;
+                if (discountType == 'percentage') {
+                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                } else if (discountType == 'fixed') {
+                  discount = double.tryParse(discountCtrl.text) ?? 0;
+                }
+                final total = subtotal - discount;
                 ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(
                   lineItems: lineItems,
-                  subtotal: total,
+                  subtotal: subtotal,
+                  discount: discount,
+                  couponCode: appliedCouponCode,
                   total: total,
                   currency: selectedCurrency,
                   paymentTerms: paymentTerms,
@@ -501,6 +611,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     String paymentTerms = 'Net 30';
     String status = 'active';
     String? selectedClientId;
+    String discountType = 'none';
+    final discountCtrl = TextEditingController();
+    String? selectedCouponId;
+    String appliedCouponCode = '';
     final items = <_InvoiceLineItem>[_InvoiceLineItem()];
 
     showDialog(
@@ -662,7 +776,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                                   decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: AppCurrency.symbol,
+                                prefixText: AppCurrency.symbolFor(selectedCurrency),
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(
@@ -692,35 +806,129 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                       hintText: 'Payment instructions, thank you note...',
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: discountType,
+                          decoration: const InputDecoration(labelText: 'Discount'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                          ],
+                          onChanged: (v) => setDialogState(() => discountType = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: discountCtrl,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          enabled: discountType != 'none',
+                          decoration: InputDecoration(
+                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                          ),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final coupons = ref
+                          .watch(referralCouponsProvider)
+                          .where((c) => c.clientId == selectedClientId && c.isActive)
+                          .toList();
+                      if (coupons.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: DropdownButtonFormField<String?>(
+                          value: selectedCouponId,
+                          decoration: const InputDecoration(
+                              labelText: 'Apply Referral Coupon',
+                              prefixIcon: Icon(Icons.card_giftcard, size: 18)),
+                          dropdownColor: AppColors.bgCard,
+                          items: [
+                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            ...coupons.map((c) => DropdownMenuItem<String?>(
+                                  value: c.id,
+                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                )),
+                          ],
+                          onChanged: (v) {
+                            setDialogState(() {
+                              selectedCouponId = v;
+                              appliedCouponCode = '';
+                              if (v != null) {
+                                final c = coupons.firstWhere((x) => x.id == v);
+                                discountType = c.type;
+                                discountCtrl.text = c.value.toStringAsFixed(0);
+                                appliedCouponCode = c.code;
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
 
                   // Total preview
                   const SizedBox(height: 12),
                   Consumer(
                     builder: (context, ref, _) {
-                      double total = 0;
+                      double subtotal = 0;
                       for (final item in items) {
                         final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
                         final price =
                             double.tryParse(item.priceCtrl.text) ?? 0;
-                        total += qty * price;
+                        subtotal += qty * price;
                       }
-                      final prevCode = AppCurrency.code;
-                      AppCurrency.setCode(selectedCurrency);
-                      final totalText = AppCurrency.formatDecimal(total);
-                      AppCurrency.setCode(prevCode);
+                      double discount = 0;
+                      if (discountType == 'percentage') {
+                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                      } else if (discountType == 'fixed') {
+                        discount = double.tryParse(discountCtrl.text) ?? 0;
+                      }
+                      final total = subtotal - discount;
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.primaryTint,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text('Total', style: AppTypography.heading2(context)),
-                            Text(totalText,
-                                style: AppTypography.heading2(context)
-                                    .copyWith(color: AppColors.primary)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Subtotal', style: AppTypography.body(context)),
+                                Text(AppCurrency.formatDecimalFor(selectedCurrency, subtotal),
+                                    style: AppTypography.body(context)),
+                              ],
+                            ),
+                            if (discount > 0)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Discount', style: AppTypography.body(context)),
+                                  Text('-${AppCurrency.formatDecimalFor(selectedCurrency, discount)}',
+                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                ],
+                              ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Total', style: AppTypography.heading2(context)),
+                                Text(AppCurrency.formatDecimalFor(selectedCurrency, total),
+                                    style: AppTypography.heading2(context)
+                                        .copyWith(color: AppColors.primary)),
+                              ],
+                            ),
                           ],
                         ),
                       );
@@ -750,10 +958,18 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                         ))
                     .toList();
 
-                final total = lineItems.fold(
+                final subtotal = lineItems.fold(
                     0.0,
                     (sum, item) =>
                         sum + item.quantity * item.rate);
+
+                double discount = 0;
+                if (discountType == 'percentage') {
+                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                } else if (discountType == 'fixed') {
+                  discount = double.tryParse(discountCtrl.text) ?? 0;
+                }
+                final total = subtotal - discount;
 
                 final invoice = Invoice(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -763,9 +979,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
                   status: status,
                   lineItems: lineItems,
-                  subtotal: total,
+                  subtotal: subtotal,
                   taxRate: 0,
                   taxAmount: 0,
+                  discount: discount,
+                  couponCode: appliedCouponCode,
                   total: total,
                   currency: selectedCurrency,
                   paymentTerms: paymentTerms,
@@ -784,9 +1002,6 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     );
   }
 
-  String _fmt(double v) {
-    return AppCurrency.formatCompact(v);
-  }
 }
 
 class _InvoiceLineItem {

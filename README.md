@@ -79,6 +79,22 @@
 - Payment terms and invoice settings
 - Integration toggles
 
+### Live Website Lead Sync (Cloudflare)
+- **Website → app pipeline** — the Bitnexel website stores leads in a Cloudflare Worker (KV); this app polls `/api/leads` every 30 s and auto-imports them into the Pipeline with source tagging ("Website Contact Form" / "Intake Wizard")
+- **New-lead toast** — a snackbar fires the moment a website lead lands
+- Token-authenticated (`LEAD_SYNC_TOKEN`), with automatic ack back to the worker
+- Configure in **Settings → Live Lead Sync** (URL + token + enable)
+- See `cloudflare-worker/README.md` for the 5-minute deploy guide
+
+### Lifecycle Checklists (three separate tracks)
+- **Website**, **Custom Software**, and **Web App / SaaS** each get their own end-to-end delivery checklist — kept fully separate per discipline
+- 9 lifecycle phases: Discovery → Proposal → Agreement & Compliance → Design → Development → QA & Security → Launch → Handover → Support
+- **DPDP Act 2023 gates** in every track: privacy notice, consent flows, data map, erasure/correction testing, breach playbook, children's-data safeguards
+- **Security gates**: OWASP Top 10 review, TLS/HSTS, security headers, auth hardening, encryption at rest/in transit, backup drills, dependency CVE audit
+- Severity levels (Critical / Required / Recommended) with a critical-gate counter
+- Per-project instances with live progress bars, persisted in Hive (survives restarts)
+- Available in the sidebar under **QUALITY → Lifecycle Checklists**
+
 ### Onboarding Wizard
 - 3-step setup: Business Info → Preferences → Done
 - Quick start for new users
@@ -141,15 +157,18 @@ lib/
 │   ├── communication.dart       # Messages
 │   ├── event.dart               # Calendar events
 │   ├── document.dart            # File management
-│   └── app_settings.dart        # Settings & preferences
+│   ├── app_settings.dart        # Settings & preferences
+│   └── lifecycle_checklist.dart # 3 separate lifecycle tracks (DPDP + security)
 ├── services/
-│   └── storage_service.dart     # Hive persistence
+│   ├── storage_service.dart     # Hive persistence
+│   └── lead_sync_service.dart   # Cloudflare polling → local leads
 ├── widgets/
 │   ├── sidebar.dart             # Navigation sidebar
 │   └── shared_widgets.dart      # Reusable components
 └── features/
     ├── onboarding/              # Setup wizard
     ├── shell/                   # Main app shell
+    ├── checklists/              # Lifecycle checklists (3 separate tracks)
     ├── dashboard/               # Overview & stats
     ├── pipeline/                # Kanban CRM
     ├── clients/                 # Client management
@@ -164,6 +183,13 @@ lib/
     ├── reports/                 # Analytics
     └── settings/                # Configuration
 ```
+
+### Cloudflare Worker (live lead pipeline)
+
+See [`cloudflare-worker/README.md`](cloudflare-worker/README.md). Deploy once,
+then set the worker URL + token in **Settings → Live Lead Sync** and the same
+URL as `VITE_LEAD_ENDPOINT` in the website. Until the worker is deployed, the
+website's WhatsApp fallback (wa.me deep link) still delivers every lead.
 
 ---
 

@@ -11,6 +11,7 @@ class Invoice {
   final double taxRate;
   final double taxAmount;
   final double discount;
+  final String couponCode;
   final double total;
   final double amountPaid;
   final String currency;
@@ -33,6 +34,7 @@ class Invoice {
     this.taxRate = 0,
     this.taxAmount = 0,
     this.discount = 0,
+    this.couponCode = '',
     this.total = 0,
     this.amountPaid = 0,
     this.currency = 'USD',
@@ -69,6 +71,7 @@ class Invoice {
     double? taxRate,
     double? taxAmount,
     double? discount,
+    String? couponCode,
     double? total,
     double? amountPaid,
     String? currency,
@@ -90,6 +93,7 @@ class Invoice {
       taxRate: taxRate ?? this.taxRate,
       taxAmount: taxAmount ?? this.taxAmount,
       discount: discount ?? this.discount,
+      couponCode: couponCode ?? this.couponCode,
       total: total ?? this.total,
       amountPaid: amountPaid ?? this.amountPaid,
       currency: currency ?? this.currency,
@@ -114,6 +118,7 @@ class Invoice {
         'taxRate': taxRate,
         'taxAmount': taxAmount,
         'discount': discount,
+        'couponCode': couponCode,
         'total': total,
         'amountPaid': amountPaid,
         'currency': currency,
@@ -141,6 +146,7 @@ class Invoice {
         taxRate: (json['taxRate'] as num?)?.toDouble() ?? 0,
         taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0,
         discount: (json['discount'] as num?)?.toDouble() ?? 0,
+        couponCode: json['couponCode']?.toString() ?? '',
         total: (json['total'] as num?)?.toDouble() ?? 0,
         amountPaid: (json['amountPaid'] as num?)?.toDouble() ?? 0,
         currency: json['currency']?.toString() ?? 'USD',

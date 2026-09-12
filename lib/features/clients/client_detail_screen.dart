@@ -8,6 +8,7 @@ import '../../models/project.dart';
 import '../../models/invoice.dart';
 import '../../models/communication.dart';
 import '../../models/quote.dart';
+import '../../models/referral_coupon.dart';
 import '../../providers.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/shared_widgets.dart';
@@ -111,6 +112,44 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     ),
                   ),
                 ),
+                if (client.discountPercent > 0) ...[
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${client.discountPercent.toStringAsFixed(0)}% client discount',
+                        style: AppTypography.caption(context).copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                if (client.commissionAmount > 0) ...[
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Commission ${AppCurrency.format(client.commissionAmount)}',
+                        style: AppTypography.caption(context).copyWith(
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
 
                 // Quick stats
@@ -195,6 +234,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       _tab('Invoices', 2),
                       _tab('Proposals', 3),
                       _tab('Messages', 4),
+                      _tab('Coupons', 5),
                     ],
                   ),
                 ),
@@ -249,6 +289,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         return _buildProposalsTab(quotes, client);
       case 4:
         return _buildMessagesTab(comms, client);
+      case 5:
+        return _buildCouponsTab(client);
       default:
         return _buildOverviewTab(client, projects, invoices);
     }
@@ -284,7 +326,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
               Icons.receipt_long,
               AppTheme.statusColor(i.status),
               'Invoice ${i.number}',
-              '${i.status} · ${AppCurrency.format(i.total)}',
+              '${i.status} · ${AppCurrency.formatFor(i.currency, i.total)}',
               i.createdAt,
             )),
           ],
@@ -407,7 +449,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 color: AppColors.textPrimary, fontWeight: FontWeight.w600,
               )),
               const Spacer(),
-              Text(AppCurrency.format(inv.total),
+              Text(AppCurrency.formatFor(inv.currency, inv.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
               const SizedBox(width: 12),
               StatusChip(label: inv.status, color: statusColor, isSmall: true),
@@ -474,7 +516,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                 color: AppColors.textPrimary, fontWeight: FontWeight.w600,
               )),
               const Spacer(),
-              Text(AppCurrency.format(q.total),
+              Text(AppCurrency.formatFor(q.currency, q.total),
                   style: AppTypography.price(context).copyWith(fontSize: 14)),
               const SizedBox(width: 12),
               StatusChip(label: q.status, color: statusColor, isSmall: true),
@@ -633,6 +675,14 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     final emailCtrl = TextEditingController(text: client.primaryContact?.email ?? '');
     final phoneCtrl = TextEditingController(text: client.primaryContact?.phone ?? '');
     String industry = client.industry.isNotEmpty ? client.industry : 'Technology';
+    final discountCtrl = TextEditingController(
+        text: client.discountPercent == 0
+            ? ''
+            : client.discountPercent.toString());
+    final commissionCtrl = TextEditingController(
+        text: client.commissionAmount == 0
+            ? ''
+            : client.commissionAmount.toString());
 
     showDialog(
       context: context,
@@ -678,6 +728,26 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   ],
                   onChanged: (v) => industry = v!,
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: discountCtrl,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Client Discount %',
+                    prefixIcon: Icon(Icons.percent, size: 20),
+                    hintText: 'e.g. 10 for 10% off all invoices',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: commissionCtrl,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Commission Amount',
+                    prefixIcon: Icon(Icons.handshake_outlined, size: 20),
+                    hintText: 'Referral fee paid to the middleman',
+                  ),
+                ),
               ],
             ),
           ),
@@ -699,6 +769,8 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   ),
                 ],
                 industry: industry,
+                discountPercent: double.tryParse(discountCtrl.text) ?? 0,
+                commissionAmount: double.tryParse(commissionCtrl.text) ?? 0,
               );
               ref.read(clientsProvider.notifier).updateClient(updated);
               Navigator.pop(ctx);
@@ -780,6 +852,11 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     final notesCtrl = TextEditingController(text: invoice.notes);
     String currency = invoice.currency;
     String paymentTerms = invoice.paymentTerms;
+    String discountType = invoice.discount > 0 ? 'fixed' : 'none';
+    final discountCtrl = TextEditingController(
+        text: invoice.discount > 0 ? invoice.discount.toStringAsFixed(2) : '');
+    String? selectedCouponId;
+    String appliedCouponCode = invoice.couponCode;
     final items = invoice.lineItems.map((item) {
       final e = _InvoiceItem();
       e.descCtrl.text = item.description;
@@ -885,7 +962,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: AppCurrency.symbol,
+                                prefixText: AppCurrency.symbolFor(currency),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -906,6 +983,130 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                     maxLines: 2,
                     decoration: const InputDecoration(labelText: 'Notes'),
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: discountType,
+                          decoration: const InputDecoration(labelText: 'Discount'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                          ],
+                          onChanged: (v) => setDialogState(() => discountType = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: discountCtrl,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          enabled: discountType != 'none',
+                          decoration: InputDecoration(
+                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                          ),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final coupons = ref
+                          .watch(referralCouponsProvider)
+                          .where((c) => c.clientId == invoice.clientId && c.isActive)
+                          .toList();
+                      if (coupons.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: DropdownButtonFormField<String?>(
+                          value: selectedCouponId,
+                          decoration: const InputDecoration(
+                              labelText: 'Apply Referral Coupon',
+                              prefixIcon: Icon(Icons.card_giftcard, size: 18)),
+                          dropdownColor: AppColors.bgCard,
+                          items: [
+                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            ...coupons.map((c) => DropdownMenuItem<String?>(
+                                  value: c.id,
+                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                )),
+                          ],
+                          onChanged: (v) {
+                            setDialogState(() {
+                              selectedCouponId = v;
+                              appliedCouponCode = '';
+                              if (v != null) {
+                                final c = coupons.firstWhere((x) => x.id == v);
+                                discountType = c.type;
+                                discountCtrl.text = c.value.toStringAsFixed(0);
+                                appliedCouponCode = c.code;
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      double subtotal = 0;
+                      for (final item in items) {
+                        final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
+                        final price = double.tryParse(item.priceCtrl.text) ?? 0;
+                        subtotal += qty * price;
+                      }
+                      double discount = 0;
+                      if (discountType == 'percentage') {
+                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                      } else if (discountType == 'fixed') {
+                        discount = double.tryParse(discountCtrl.text) ?? 0;
+                      }
+                      final total = subtotal - discount;
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Subtotal', style: AppTypography.body(context)),
+                                Text(AppCurrency.formatDecimalFor(currency, subtotal),
+                                    style: AppTypography.body(context)),
+                              ],
+                            ),
+                            if (discount > 0)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Discount', style: AppTypography.body(context)),
+                                  Text('-${AppCurrency.formatDecimalFor(currency, discount)}',
+                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                ],
+                              ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Total', style: AppTypography.heading2(context)),
+                                Text(AppCurrency.formatDecimalFor(currency, total),
+                                    style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -919,10 +1120,19 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
                   rate: double.tryParse(i.priceCtrl.text) ?? 0,
                 )).toList();
-                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final subtotal = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                double discount = 0;
+                if (discountType == 'percentage') {
+                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                } else if (discountType == 'fixed') {
+                  discount = double.tryParse(discountCtrl.text) ?? 0;
+                }
+                final total = subtotal - discount;
                 ref.read(invoicesProvider.notifier).updateInvoice(invoice.copyWith(
                   lineItems: lineItems,
-                  subtotal: total,
+                  subtotal: subtotal,
+                  discount: discount,
+                  couponCode: appliedCouponCode,
                   total: total,
                   currency: currency,
                   paymentTerms: paymentTerms,
@@ -942,6 +1152,10 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     String currency = AppCurrency.code;
     String paymentTerms = 'Net 30';
     String invStatus = 'active';
+    String discountType = 'none';
+    final discountCtrl = TextEditingController();
+    String? selectedCouponId;
+    String appliedCouponCode = '';
     final items = <_InvoiceItem>[_InvoiceItem()];
 
     showDialog(
@@ -1052,7 +1266,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: AppCurrency.symbol,
+                                prefixText: AppCurrency.symbolFor(currency),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -1067,6 +1281,130 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                       ),
                     );
                   }),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: discountType,
+                          decoration: const InputDecoration(labelText: 'Discount'),
+                          dropdownColor: AppColors.bgCard,
+                          items: const [
+                            DropdownMenuItem(value: 'none', child: Text('No Discount')),
+                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                          ],
+                          onChanged: (v) => setDialogState(() => discountType = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: discountCtrl,
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          enabled: discountType != 'none',
+                          decoration: InputDecoration(
+                            labelText: discountType == 'percentage' ? 'Discount %' : 'Discount amount',
+                          ),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final coupons = ref
+                          .watch(referralCouponsProvider)
+                          .where((c) => c.clientId == clientId && c.isActive)
+                          .toList();
+                      if (coupons.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: DropdownButtonFormField<String?>(
+                          value: selectedCouponId,
+                          decoration: const InputDecoration(
+                              labelText: 'Apply Referral Coupon',
+                              prefixIcon: Icon(Icons.card_giftcard, size: 18)),
+                          dropdownColor: AppColors.bgCard,
+                          items: [
+                            const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                            ...coupons.map((c) => DropdownMenuItem<String?>(
+                                  value: c.id,
+                                  child: Text('${c.code} — ${c.isPercentage ? '${c.value.toStringAsFixed(0)}%' : 'flat ${c.value.toStringAsFixed(0)}'}'),
+                                )),
+                          ],
+                          onChanged: (v) {
+                            setDialogState(() {
+                              selectedCouponId = v;
+                              appliedCouponCode = '';
+                              if (v != null) {
+                                final c = coupons.firstWhere((x) => x.id == v);
+                                discountType = c.type;
+                                discountCtrl.text = c.value.toStringAsFixed(0);
+                                appliedCouponCode = c.code;
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      double subtotal = 0;
+                      for (final item in items) {
+                        final qty = double.tryParse(item.qtyCtrl.text) ?? 0;
+                        final price = double.tryParse(item.priceCtrl.text) ?? 0;
+                        subtotal += qty * price;
+                      }
+                      double discount = 0;
+                      if (discountType == 'percentage') {
+                        discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                      } else if (discountType == 'fixed') {
+                        discount = double.tryParse(discountCtrl.text) ?? 0;
+                      }
+                      final total = subtotal - discount;
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Subtotal', style: AppTypography.body(context)),
+                                Text(AppCurrency.formatDecimalFor(currency, subtotal),
+                                    style: AppTypography.body(context)),
+                              ],
+                            ),
+                            if (discount > 0)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Discount', style: AppTypography.body(context)),
+                                  Text('-${AppCurrency.formatDecimalFor(currency, discount)}',
+                                      style: AppTypography.body(context).copyWith(color: AppColors.success)),
+                                ],
+                              ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Total', style: AppTypography.heading2(context)),
+                                Text(AppCurrency.formatDecimalFor(currency, total),
+                                    style: AppTypography.heading2(context).copyWith(color: AppColors.primary)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1080,14 +1418,23 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   quantity: double.tryParse(i.qtyCtrl.text) ?? 1,
                   rate: double.tryParse(i.priceCtrl.text) ?? 0,
                 )).toList();
-                final total = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                final subtotal = lineItems.fold(0.0, (s, i) => s + i.quantity * i.rate);
+                double discount = 0;
+                if (discountType == 'percentage') {
+                  discount = subtotal * (double.tryParse(discountCtrl.text) ?? 0) / 100;
+                } else if (discountType == 'fixed') {
+                  discount = double.tryParse(discountCtrl.text) ?? 0;
+                }
+                final total = subtotal - discount;
                 final invoice = Invoice(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   number: 'INV-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   clientId: clientId,
                   status: invStatus,
                   lineItems: lineItems,
-                  subtotal: total,
+                  subtotal: subtotal,
+                  discount: discount,
+                  couponCode: appliedCouponCode,
                   total: total,
                   currency: currency,
                   paymentTerms: paymentTerms,
@@ -1107,6 +1454,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
   void _showCreateProposalDialog(BuildContext context, String clientId) {
     final titleCtrl = TextEditingController();
     final items = <_ProposalItem>[_ProposalItem()];
+    String currency = AppCurrency.code;
 
     showDialog(
       context: context,
@@ -1161,7 +1509,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                               keyboardType: TextInputType.numberWithOptions(decimal: true),
                               decoration: InputDecoration(
                                 hintText: 'Price',
-                                prefixText: AppCurrency.symbol,
+                                prefixText: AppCurrency.symbolFor(currency),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -1196,6 +1544,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
                   number: 'PROP-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}',
                   title: titleCtrl.text.trim(),
                   clientId: clientId,
+                  currency: currency,
                   status: 'draft',
                   lineItems: lineItems,
                   subtotal: total,
@@ -1239,7 +1588,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     }
     if (action == 'print') {
       final settings = ref.read(settingsProvider);
-      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: AppCurrency.symbol);
+      PdfService.printInvoice(inv, businessName: settings.businessName.isNotEmpty ? settings.businessName : 'FreelanceHub', currency: inv.currency);
       return;
     }
     if (action == 'delete') {
@@ -1255,6 +1604,178 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
         );
       }
     }
+  }
+
+  Widget _buildCouponsTab(Client client) {
+    final coupons = ref
+        .watch(referralCouponsProvider)
+        .where((c) => c.clientId == client.id)
+        .toList();
+    if (coupons.isEmpty) {
+      return EmptyState(
+        icon: Icons.card_giftcard,
+        title: 'No referral coupons yet',
+        subtitle: 'Reward this client for successful referrals with a discount coupon',
+        actionLabel: 'Add Coupon',
+        onAction: () => _showAddCouponDialog(context, client.id),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: coupons.length,
+      itemBuilder: (context, i) {
+        final c = coupons[i];
+        final statusColor = c.status == 'active'
+            ? AppColors.success
+            : c.status == 'used'
+                ? AppColors.textMuted
+                : AppColors.danger;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.card_giftcard, color: AppColors.primary, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(c.code, style: AppTypography.body(context).copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    )),
+                    const SizedBox(height: 2),
+                    Text(
+                      c.isPercentage
+                          ? '${c.value.toStringAsFixed(0)}% off${c.note.isNotEmpty ? ' · ${c.note}' : ''}'
+                          : 'Flat ${c.value.toStringAsFixed(0)} off${c.note.isNotEmpty ? ' · ${c.note}' : ''}',
+                      style: AppTypography.bodySmall(context),
+                    ),
+                  ],
+                ),
+              ),
+              StatusChip(label: c.status, color: statusColor, isSmall: true),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.more_vert, size: 18, color: AppColors.textMuted),
+                onSelected: (v) => _handleCouponAction(v, c),
+                itemBuilder: (_) => [
+                  if (c.status == 'active')
+                    const PopupMenuItem(value: 'used', child: Text('Mark as Used')),
+                  if (c.status != 'active')
+                    const PopupMenuItem(value: 'active', child: Text('Mark as Active')),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleCouponAction(String action, ReferralCoupon coupon) {
+    if (action == 'used') {
+      ref.read(referralCouponsProvider.notifier).updateCoupon(coupon.copyWith(status: 'used'));
+      return;
+    }
+    if (action == 'active') {
+      ref.read(referralCouponsProvider.notifier).updateCoupon(coupon.copyWith(status: 'active'));
+      return;
+    }
+    if (action == 'delete') {
+      ref.read(referralCouponsProvider.notifier).deleteCoupon(coupon.id);
+    }
+  }
+
+  void _showAddCouponDialog(BuildContext context, String clientId) {
+    final codeCtrl = TextEditingController();
+    String type = 'percentage';
+    final valueCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('Add Referral Coupon', style: AppTypography.heading2(context)),
+          content: SizedBox(
+            width: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: codeCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Coupon Code *',
+                      prefixIcon: Icon(Icons.tag, size: 20),
+                      hintText: 'e.g. REFER-10',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: type,
+                    decoration: const InputDecoration(labelText: 'Type'),
+                    dropdownColor: AppColors.bgCard,
+                    items: const [
+                      DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
+                      DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount')),
+                    ],
+                    onChanged: (v) => setDialogState(() => type = v!),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: valueCtrl,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: type == 'percentage' ? 'Value (%)' : 'Value (amount)',
+                      prefixIcon: const Icon(Icons.numbers, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: noteCtrl,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Note',
+                      hintText: 'e.g. Referred Acme Corp — won project',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                if (codeCtrl.text.trim().isEmpty) return;
+                final coupon = ReferralCoupon(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  clientId: clientId,
+                  code: codeCtrl.text.trim().toUpperCase(),
+                  type: type,
+                  value: double.tryParse(valueCtrl.text) ?? 0,
+                  note: noteCtrl.text.trim(),
+                );
+                ref.read(referralCouponsProvider.notifier).addCoupon(coupon);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Add Coupon'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showComposeMessageDialog(BuildContext context, String clientId) {

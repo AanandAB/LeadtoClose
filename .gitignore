@@ -35,3 +35,9 @@ web/.dart_tool/
 *.pyc
 .DS_Store
 Thumbs.db
+
+# Cloudflare worker local state (secrets live in wrangler, not here)
+cloudflare-worker/.wrangler/
+
+# Compiled Inno Setup installers (build artifacts; source is installer.iss)
+installer/*.exe

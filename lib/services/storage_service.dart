@@ -11,6 +11,8 @@ import '../models/document.dart';
 import '../models/communication.dart';
 import '../models/event.dart';
 import '../models/app_settings.dart';
+import '../models/referral_coupon.dart';
+import '../models/lifecycle_checklist.dart';
 
 class StorageService {
   static const String _settingsKey = 'app_settings';
@@ -27,6 +29,9 @@ class StorageService {
   static const String _communicationsBox = 'communications';
   static const String _eventsBox = 'events';
   static const String _milestonesBox = 'milestones';
+  static const String _couponsBox = 'referral_coupons';
+  static const String _checklistsBox = 'checklists';
+  static const String _syncMetaBox = 'sync_meta';
 
   late Box _settings;
   late Box _leads;
@@ -41,6 +46,9 @@ class StorageService {
   late Box _communications;
   late Box _events;
   late Box _milestones;
+  late Box _coupons;
+  late Box _checklists;
+  late Box _syncMeta;
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -57,6 +65,9 @@ class StorageService {
     _communications = await Hive.openBox(_communicationsBox);
     _events = await Hive.openBox(_eventsBox);
     _milestones = await Hive.openBox(_milestonesBox);
+    _coupons = await Hive.openBox(_couponsBox);
+    _checklists = await Hive.openBox(_checklistsBox);
+    _syncMeta = await Hive.openBox(_syncMetaBox);
   }
 
   // ============ Settings ============
@@ -414,6 +425,56 @@ class StorageService {
     await _milestones.delete(id);
   }
 
+  // ============ Referral Coupons ============
+  List<ReferralCoupon> getAllCoupons() {
+    return _coupons.values
+        .map((v) => ReferralCoupon.fromJson(Map<String, dynamic>.from(v)))
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  List<ReferralCoupon> getCouponsByClient(String clientId) {
+    return getAllCoupons().where((c) => c.clientId == clientId).toList();
+  }
+
+  Future<void> saveCoupon(ReferralCoupon coupon) async {
+    await _coupons.put(coupon.id, coupon.toJson());
+  }
+
+  Future<void> deleteCoupon(String id) async {
+    await _coupons.delete(id);
+  }
+
+  // ============ Lifecycle Checklists ============
+  List<ChecklistInstance> getAllChecklists() {
+    return _checklists.values
+        .map((v) =>
+            ChecklistInstance.fromJson(Map<String, dynamic>.from(v)))
+        .toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  }
+
+  ChecklistInstance? getChecklist(String id) {
+    final data = _checklists.get(id);
+    if (data == null) return null;
+    return ChecklistInstance.fromJson(Map<String, dynamic>.from(data));
+  }
+
+  Future<void> saveChecklist(ChecklistInstance checklist) async {
+    await _checklists.put(checklist.id, checklist.toJson());
+  }
+
+  Future<void> deleteChecklist(String id) async {
+    await _checklists.delete(id);
+  }
+
+  // ============ Sync metadata (remote lead dedupe etc.) ============
+  bool hasSyncKey(String key) => _syncMeta.containsKey(key);
+
+  Future<void> putSyncKey(String key) async {
+    await _syncMeta.put(key, DateTime.now().toIso8601String());
+  }
+
   // ============ Analytics Helpers ============
   double getTotalRevenue() {
     return getAllInvoices()
@@ -423,7 +484,7 @@ class StorageService {
 
   double getOutstandingAmount() {
     return getAllInvoices()
-        .where((i) => i.status != 'paid' && i.status != 'cancelled')
+        .where((i) => i.status == 'active')
         .fold(0.0, (sum, i) => sum + i.balanceDue);
   }
 

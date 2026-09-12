@@ -11,8 +11,10 @@ import 'package:freelancehub/models/communication.dart';
 import 'package:freelancehub/models/event.dart';
 import 'package:freelancehub/models/document.dart';
 import 'package:freelancehub/models/app_settings.dart';
+import 'package:freelancehub/models/referral_coupon.dart';
 import 'dart:ui';
 import 'package:freelancehub/core/theme.dart';
+import 'package:freelancehub/core/money.dart';
 
 void main() {
   group('AppCurrency', () {
@@ -67,6 +69,20 @@ void main() {
 
     test('supported currencies list is correct', () {
       expect(AppCurrency.supportedCurrencies, ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AED', 'SAR']);
+    });
+
+    test('symbolFor returns per-currency symbols', () {
+      expect(AppCurrency.symbolFor('INR'), '₹');
+      expect(AppCurrency.symbolFor('AED'), 'د.إ');
+      expect(AppCurrency.symbolFor('SAR'), '﷼');
+      expect(AppCurrency.symbolFor('USD'), '\$');
+    });
+
+    test('formatFor / formatDecimalFor use an explicit code', () {
+      expect(AppCurrency.formatFor('AED', 1234), 'د.إ1234');
+      expect(AppCurrency.formatFor('USD', 1234), '\$1234');
+      expect(AppCurrency.formatFor('INR', 1234567), '₹12,34,567');
+      expect(AppCurrency.formatDecimalFor('AED', 99.99), 'د.إ99.99');
     });
   });
 
@@ -178,6 +194,20 @@ void main() {
       expect(restored.totalRevenue, client.totalRevenue);
       expect(restored.contacts.length, 1);
       expect(restored.contacts[0].name, 'John');
+    });
+
+    test('discountPercent roundtrip', () {
+      final client = Client(id: '1', companyName: 'Acme', discountPercent: 12.5);
+      expect(client.discountPercent, 12.5);
+      final restored = Client.fromJson(client.toJson());
+      expect(restored.discountPercent, 12.5);
+    });
+
+    test('commissionAmount roundtrip', () {
+      final client = Client(id: '1', companyName: 'Acme', commissionAmount: 5000);
+      expect(client.commissionAmount, 5000);
+      final restored = Client.fromJson(client.toJson());
+      expect(restored.commissionAmount, 5000);
     });
   });
 
@@ -296,6 +326,77 @@ void main() {
       expect(restored.currency, 'INR');
       expect(restored.lineItems.length, 1);
       expect(restored.lineItems[0].rate, 100);
+      expect(restored.couponCode, '');
+    });
+  });
+
+  group('ReferralCoupon Model', () {
+    test('creates with defaults', () {
+      final coupon = ReferralCoupon(id: '1', clientId: 'c1', code: 'REF-10');
+      expect(coupon.status, 'active');
+      expect(coupon.type, 'percentage');
+      expect(coupon.isActive, true);
+      expect(coupon.isPercentage, true);
+    });
+
+    test('percentage discountFor', () {
+      final coupon = ReferralCoupon(
+          id: '1', clientId: 'c1', code: 'REF-10', type: 'percentage', value: 10);
+      expect(coupon.discountFor(1000), 100);
+    });
+
+    test('fixed discountFor', () {
+      final coupon = ReferralCoupon(
+          id: '1', clientId: 'c1', code: 'REF-FLAT', type: 'fixed', value: 50);
+      expect(coupon.discountFor(1000), 50);
+    });
+
+    test('toJson/fromJson roundtrip', () {
+      final coupon = ReferralCoupon(
+          id: '1',
+          clientId: 'c1',
+          code: 'REF-10',
+          type: 'fixed',
+          value: 25,
+          status: 'used',
+          note: 'won project');
+      final restored = ReferralCoupon.fromJson(coupon.toJson());
+      expect(restored.code, 'REF-10');
+      expect(restored.type, 'fixed');
+      expect(restored.value, 25);
+      expect(restored.status, 'used');
+      expect(restored.note, 'won project');
+    });
+  });
+
+  group('MoneyTotals', () {
+    setUp(() => AppCurrency.setCode('INR'));
+
+    test('groups mixed currencies without summing them', () {
+      final invoices = [
+        Invoice(id: '1', number: 'A', currency: 'INR', total: 100000),
+        Invoice(id: '2', number: 'B', currency: 'INR', total: 50000),
+        Invoice(id: '3', number: 'C', currency: 'AED', total: 5000),
+      ];
+      expect(MoneyTotals.grouped(invoices, (i) => i.total),
+          '₹1.5L  ·  د.إ5.0K');
+    });
+
+    test('single currency renders one value', () {
+      final invoices = [
+        Invoice(id: '1', number: 'A', currency: 'INR', total: 100000),
+      ];
+      expect(MoneyTotals.grouped(invoices, (i) => i.total), '₹1.0L');
+    });
+
+    test('empty set renders zero', () {
+      expect(MoneyTotals.grouped(const [], (i) => i.total), '₹0');
+    });
+
+    test('fromMap formats a currency map and drops zero rows', () {
+      expect(MoneyTotals.fromMap({'INR': 150000, 'AED': 5000}),
+          '₹1.5L  ·  د.إ5.0K');
+      expect(MoneyTotals.fromMap({'INR': 0}), '₹0');
     });
   });
 

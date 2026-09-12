@@ -11,7 +11,13 @@ import 'models/document.dart';
 import 'models/communication.dart';
 import 'models/event.dart';
 import 'models/app_settings.dart';
+import 'models/referral_coupon.dart';
+import 'models/lifecycle_checklist.dart';
 import 'services/storage_service.dart';
+import 'services/lead_sync_service.dart';
+import 'services/portal_sync_service.dart';
+import 'services/portal_events_service.dart';
+import 'dart:async';
 
 // Storage
 final storageServiceProvider = Provider<StorageService>((ref) {
@@ -69,6 +75,135 @@ class LeadsNotifier extends StateNotifier<List<Lead>> {
     return state.where((l) => l.stage == stage).toList();
   }
 }
+
+// ============ Lifecycle Checklists ============
+final checklistsProvider =
+    StateNotifierProvider<ChecklistsNotifier, List<ChecklistInstance>>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return ChecklistsNotifier(storage);
+});
+
+class ChecklistsNotifier extends StateNotifier<List<ChecklistInstance>> {
+  final StorageService _storage;
+  ChecklistsNotifier(this._storage) : super(_storage.getAllChecklists());
+
+  void refresh() {
+    state = _storage.getAllChecklists();
+  }
+
+  /// Create (or return existing) checklist for a project/lead.
+  ChecklistInstance ensureChecklist({
+    required String id,
+    required ChecklistTrack track,
+    required String projectName,
+  }) {
+    final existing = _storage.getChecklist(id);
+    if (existing != null) return existing;
+    final instance = createChecklistInstance(
+      id: id,
+      track: track,
+      projectName: projectName,
+    );
+    _storage.saveChecklist(instance);
+    refresh();
+    return instance;
+  }
+
+  Future<void> toggleItem(String checklistId, String itemId) async {
+    final checklist = _storage.getChecklist(checklistId);
+    if (checklist == null) return;
+    final checked = Map<String, bool>.from(checklist.checked);
+    checked[itemId] = !(checked[itemId] ?? false);
+    await _storage.saveChecklist(checklist.copyWith(checked: checked));
+    refresh();
+  }
+
+  void deleteChecklist(String id) {
+    _storage.deleteChecklist(id);
+    refresh();
+  }
+}
+
+// ============ Live Lead Sync (Cloudflare) ============
+final leadSyncProvider = Provider<LeadSyncService>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  final leadsNotifier = ref.watch(leadsProvider.notifier);
+
+  final service = LeadSyncService(
+    importLead: (lead) async {
+      await leadsNotifier.addLead(lead);
+      return true;
+    },
+    hasSeenRemoteLead: storage.hasSyncKey,
+    markRemoteLeadSeen: storage.putSyncKey,
+  );
+
+  // Start polling with the stored config (no-op when disabled/unconfigured).
+  final settings = ref.watch(settingsProvider);
+  if (settings.leadSyncEnabled && settings.leadSyncUrl.isNotEmpty) {
+    service.configure(LeadSyncConfig(
+      baseUrl: settings.leadSyncUrl,
+      token: settings.leadSyncToken,
+    ));
+  }
+
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+// Sync status for UI badges.
+final lastSyncProvider = StateProvider<DateTime?>((ref) => null);
+final syncErrorProvider = StateProvider<String?>((ref) => null);
+
+// ============ Client Portal Sync (CRM → D1) ============
+final portalSyncProvider = Provider<PortalSyncService>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+
+  final service = PortalSyncService(
+    getClients: storage.getAllClients,
+    getProjects: storage.getAllProjects,
+    getMilestones: storage.getAllMilestones,
+  );
+
+  // Start periodic push with the stored config (no-op when disabled).
+  final settings = ref.watch(settingsProvider);
+  if (settings.portalSyncEnabled && settings.portalSyncUrl.isNotEmpty) {
+    service.configure(PortalSyncConfig(
+      baseUrl: settings.portalSyncUrl,
+      token: settings.portalSyncToken,
+    ));
+  }
+
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final portalSyncStatusProvider = StateProvider<String?>((ref) => null);
+
+// ============ Client Portal Events (portal -> CRM) ============
+final portalEventsProvider = Provider<PortalEventsService>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+
+  final service = PortalEventsService(
+    getClients: storage.getAllClients,
+    saveCommunication: storage.saveCommunication,
+    getMilestones: storage.getAllMilestones,
+    saveMilestone: storage.saveMilestone,
+    hasSeenEvent: storage.hasSyncKey,
+    markEventSeen: storage.putSyncKey,
+  );
+
+  final settings = ref.watch(settingsProvider);
+  if (settings.portalSyncEnabled && settings.portalSyncUrl.isNotEmpty) {
+    service.configure(PortalSyncConfig(
+      baseUrl: settings.portalSyncUrl,
+      token: settings.portalSyncToken,
+    ));
+  }
+
+  ref.onDispose(service.dispose);
+  return service;
+});
 
 // ============ Clients ============
 final clientsProvider =
@@ -222,11 +357,46 @@ class InvoicesNotifier extends StateNotifier<List<Invoice>> {
       .fold(0.0, (sum, i) => sum + i.total);
 
   double get outstanding =>
-      state.where((i) => i.status != 'paid' && i.status != 'cancelled')
+      state.where((i) => i.status == 'active')
           .fold(0.0, (sum, i) => sum + i.balanceDue);
 
   double get overdue =>
       state.where((i) => i.isOverdue).fold(0.0, (sum, i) => sum + i.balanceDue);
+}
+
+// ============ Referral Coupons ============
+final referralCouponsProvider =
+    StateNotifierProvider<CouponsNotifier, List<ReferralCoupon>>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return CouponsNotifier(storage);
+});
+
+class CouponsNotifier extends StateNotifier<List<ReferralCoupon>> {
+  final StorageService _storage;
+  CouponsNotifier(this._storage) : super(_storage.getAllCoupons());
+
+  void refresh() {
+    state = _storage.getAllCoupons();
+  }
+
+  Future<void> addCoupon(ReferralCoupon coupon) async {
+    await _storage.saveCoupon(coupon);
+    refresh();
+  }
+
+  Future<void> updateCoupon(ReferralCoupon coupon) async {
+    await _storage.saveCoupon(coupon);
+    refresh();
+  }
+
+  void deleteCoupon(String id) {
+    state = state.where((c) => c.id != id).toList();
+    _storage.deleteCoupon(id);
+  }
+
+  List<ReferralCoupon> byClient(String clientId) {
+    return state.where((c) => c.clientId == clientId).toList();
+  }
 }
 
 // ============ Quotes ============

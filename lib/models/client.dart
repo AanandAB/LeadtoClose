@@ -13,6 +13,8 @@ class Client {
   final DateTime updatedAt;
   final double totalRevenue;
   final double outstandingBalance;
+  final double discountPercent; // standing % discount applied to this client's invoices
+  final double commissionAmount; // flat referral fee paid to the middleman who introduced this client
 
   Client({
     required this.id,
@@ -29,6 +31,8 @@ class Client {
     DateTime? updatedAt,
     this.totalRevenue = 0,
     this.outstandingBalance = 0,
+    this.discountPercent = 0,
+    this.commissionAmount = 0,
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
@@ -48,6 +52,8 @@ class Client {
     DateTime? updatedAt,
     double? totalRevenue,
     double? outstandingBalance,
+    double? discountPercent,
+    double? commissionAmount,
   }) {
     return Client(
       id: id,
@@ -64,6 +70,8 @@ class Client {
       updatedAt: updatedAt ?? DateTime.now(),
       totalRevenue: totalRevenue ?? this.totalRevenue,
       outstandingBalance: outstandingBalance ?? this.outstandingBalance,
+      discountPercent: discountPercent ?? this.discountPercent,
+      commissionAmount: commissionAmount ?? this.commissionAmount,
     );
   }
 
@@ -82,6 +90,8 @@ class Client {
         'updatedAt': updatedAt.toIso8601String(),
         'totalRevenue': totalRevenue,
         'outstandingBalance': outstandingBalance,
+        'discountPercent': discountPercent,
+        'commissionAmount': commissionAmount,
       };
 
   factory Client.fromJson(Map<dynamic, dynamic> json) => Client(
@@ -108,6 +118,8 @@ class Client {
         totalRevenue: (json['totalRevenue'] as num?)?.toDouble() ?? 0,
         outstandingBalance:
             (json['outstandingBalance'] as num?)?.toDouble() ?? 0,
+        discountPercent: (json['discountPercent'] as num?)?.toDouble() ?? 0,
+        commissionAmount: (json['commissionAmount'] as num?)?.toDouble() ?? 0,
       );
 }
 

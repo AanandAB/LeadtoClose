@@ -1,0 +1,23 @@
+name = "bitnexel-leads"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# KV namespace that backs the live lead queue.
+# Create it once with:
+#   npx wrangler kv namespace create LEADS
+# then paste the id below.
+[[kv_namespaces]]
+binding = "LEADS"
+id = "ecdc3b8d666b4e81813089702d47db90"
+
+[vars]
+# Studio WhatsApp number (digits only) used for the tap-to-chat fallback link
+# returned by the API. The outbound WhatsApp notification itself is sent via
+# the CALLMEBOT_API_KEY secret (see README.md).
+STUDIO_WHATSAPP_NUMBER = "917034026295"
+
+# Secrets (set with `npx wrangler secret put …`):
+#   WHATSAPP_API_URL    – CallMeBot message endpoint (optional; has default)
+#   CALLMEBOT_API_KEY   – your CallMeBot API key (required for auto-notification)
+#   LEAD_SYNC_TOKEN     – shared secret the desktop app must send as
+#                         `Authorization: Bearer <token>` when polling /api/leads

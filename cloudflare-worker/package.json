@@ -1,0 +1,16 @@
+{
+  "name": "bitnexel-leads",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live lead store + WhatsApp notification for the Bitnexel website → LeadtoClose pipeline",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260801.0",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme.dart';
@@ -18,151 +20,167 @@ class AppSidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
 
-    return Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: AppColors.bgMid,
-        border: Border(
-          right: BorderSide(color: AppColors.borderLight, width: 0.5),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Logo & brand (fixed at top)
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/freelancehub_logo.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'FreelanceHub',
-                  style: AppTypography.heading2(context).copyWith(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          width: 240,
+          decoration: BoxDecoration(
+            color: AppColors.glassFillStrong,
+            border: Border(
+              right: BorderSide(color: AppColors.glassBorder, width: 0.8),
             ),
           ),
-          const SizedBox(height: 32),
-
-          // Scrollable navigation
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Column(
-                children: [
-                  _navSection(
-                    context,
-                    'OVERVIEW',
-                    [_NavItem(0, Icons.dashboard_rounded, 'Dashboard')],
-                  ),
-                  const SizedBox(height: 16),
-                  _navSection(
-                    context,
-                    'CRM',
-                    [
-                      _NavItem(1, Icons.view_kanban_rounded, 'Pipeline'),
-                      _NavItem(2, Icons.people_outline_rounded, 'Clients'),
-                      _NavItem(3, Icons.description_outlined, 'Proposals'),
-                      _NavItem(4, Icons.gavel_outlined, 'Contracts'),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _navSection(
-                    context,
-                    'WORK',
-                    [
-                      _NavItem(5, Icons.folder_outlined, 'Projects'),
-                      _NavItem(6, Icons.timer_outlined, 'Time Tracking'),
-                      _NavItem(7, Icons.receipt_long_outlined, 'Invoices'),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _navSection(
-                    context,
-                    'TOOLS',
-                    [
-                      _NavItem(8, Icons.chat_bubble_outline_rounded, 'Messages'),
-                      _NavItem(9, Icons.calendar_today_rounded, 'Calendar'),
-                      _NavItem(10, Icons.folder_copy_outlined, 'Documents'),
-                      _NavItem(11, Icons.analytics_outlined, 'Reports'),
-                    ],
-                  ),
-                ],
+          child: Column(
+            children: [
+              // Logo & brand (fixed at top)
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/freelancehub_logo.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'FreelanceHub',
+                      style: AppTypography.heading2(context).copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
+              const SizedBox(height: 32),
 
-          // Bottom section (pinned)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _navItemSmall(
-                  context,
-                  Icons.settings_rounded,
-                  'Settings',
-                  () => context.go('/settings'),
+              // Scrollable navigation
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    children: [
+                      _navSection(
+                        context,
+                        'OVERVIEW',
+                        [_NavItem(0, Icons.dashboard_rounded, 'Dashboard')],
+                      ),
+                      const SizedBox(height: 16),
+                      _navSection(
+                        context,
+                        'CRM',
+                        [
+                          _NavItem(1, Icons.view_kanban_rounded, 'Pipeline'),
+                          _NavItem(2, Icons.people_outline_rounded, 'Clients'),
+                          _NavItem(3, Icons.description_outlined, 'Proposals'),
+                          _NavItem(4, Icons.gavel_outlined, 'Contracts'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _navSection(
+                        context,
+                        'WORK',
+                        [
+                          _NavItem(5, Icons.folder_outlined, 'Projects'),
+                          _NavItem(6, Icons.timer_outlined, 'Time Tracking'),
+                          _NavItem(7, Icons.receipt_long_outlined, 'Invoices'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _navSection(
+                        context,
+                        'QUALITY',
+                        [
+                          _NavItem(12, Icons.checklist_rounded,
+                              'Lifecycle Checklists'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _navSection(
+                        context,
+                        'TOOLS',
+                        [
+                          _NavItem(
+                              8, Icons.chat_bubble_outline_rounded, 'Messages'),
+                          _NavItem(9, Icons.calendar_today_rounded, 'Calendar'),
+                          _NavItem(10, Icons.folder_copy_outlined, 'Documents'),
+                          _NavItem(11, Icons.analytics_outlined, 'Reports'),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                if (settings.businessName.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.borderLight),
+              ),
+
+              // Bottom section (pinned)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _navItemSmall(
+                      context,
+                      Icons.settings_rounded,
+                      'Settings',
+                      () => context.go('/settings'),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Center(
-                            child: Text(
-                              settings.businessName[0].toUpperCase(),
-                              style: AppTypography.label(context).copyWith(
-                                color: AppColors.primaryLight,
-                                fontSize: 11,
+                    const SizedBox(height: 8),
+                    if (settings.businessName.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.borderLight),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  settings.businessName[0].toUpperCase(),
+                                  style: AppTypography.label(context).copyWith(
+                                    color: AppColors.primaryLight,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            settings.businessName,
-                            style: AppTypography.bodySmall(context).copyWith(
-                              color: AppColors.textSecondary,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                settings.businessName,
+                                style:
+                                    AppTypography.bodySmall(context).copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }
@@ -192,9 +210,8 @@ class AppSidebar extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
       child: Material(
-        color: active
-            ? AppColors.primary.withOpacity(0.12)
-            : Colors.transparent,
+        color:
+            active ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -206,9 +223,7 @@ class AppSidebar extends ConsumerWidget {
                 Icon(
                   item.icon,
                   size: 18,
-                  color: active
-                      ? AppColors.primaryLight
-                      : AppColors.textMuted,
+                  color: active ? AppColors.primaryLight : AppColors.textMuted,
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -217,8 +232,7 @@ class AppSidebar extends ConsumerWidget {
                     color: active
                         ? AppColors.textPrimary
                         : AppColors.textSecondary,
-                    fontWeight:
-                        active ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                     fontSize: 13,
                   ),
                 ),

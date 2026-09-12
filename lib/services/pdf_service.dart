@@ -52,7 +52,7 @@ class PdfService {
 
   // ======================== INVOICE PDF ========================
 
-  static Future<void> printInvoice(Invoice invoice, {String businessName = 'FreelanceHub', String currency = '₹'}) async {
+  static Future<void> printInvoice(Invoice invoice, {String businessName = 'FreelanceHub', String currency = 'INR'}) async {
     final doc = pw.Document();
     final font = await _loadUnicodeFont();
     final theme = pw.ThemeData.withFont(
@@ -73,11 +73,11 @@ class PdfService {
           _lineItemsTable(invoice.lineItems.map((item) => [
             item.description,
             item.quantity.toStringAsFixed(0),
-            '${currency}${item.rate.toStringAsFixed(2)}',
-            '${currency}${(item.quantity * item.rate).toStringAsFixed(2)}',
+            '${_pdfSymbol(currency)}${item.rate.toStringAsFixed(2)}',
+            '${_pdfSymbol(currency)}${(item.quantity * item.rate).toStringAsFixed(2)}',
           ]).toList()),
           pw.SizedBox(height: 20),
-          _totalsSection(invoice, currency),
+          _totalsSection(invoice, _pdfSymbol(currency)),
           pw.SizedBox(height: 30),
           if (invoice.notes.isNotEmpty) ...[
             _sectionTitle('Notes'),
@@ -85,7 +85,7 @@ class PdfService {
             pw.Text(invoice.notes, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
             pw.SizedBox(height: 20),
           ],
-          _paymentBox(invoice, currency),
+          _paymentBox(invoice, _pdfSymbol(currency)),
           pw.SizedBox(height: 40),
           _footer(businessName),
         ],
@@ -171,7 +171,12 @@ class PdfService {
               ],
               if (invoice.discount > 0) ...[
                 pw.SizedBox(height: 4),
-                _totalRow('Discount', '-$currency${invoice.discount.toStringAsFixed(2)}'),
+                _totalRow(
+                  invoice.couponCode.isNotEmpty
+                      ? 'Discount (${invoice.couponCode})'
+                      : 'Discount',
+                  '-$currency${invoice.discount.toStringAsFixed(2)}',
+                ),
               ],
               pw.Container(height: 1, color: PdfColors.grey300),
               pw.SizedBox(height: 6),
@@ -221,7 +226,7 @@ class PdfService {
 
   // ======================== PROPOSAL PDF ========================
 
-  static Future<void> printProposal(Quote quote, {String businessName = 'FreelanceHub', String currency = '₹'}) async {
+  static Future<void> printProposal(Quote quote, {String businessName = 'FreelanceHub', String currency = 'INR'}) async {
     final doc = pw.Document();
     final font = await _loadUnicodeFont();
     final theme = pw.ThemeData.withFont(
@@ -248,8 +253,8 @@ class PdfService {
           _lineItemsTable(quote.lineItems.map((item) => [
             item.description,
             item.quantity.toStringAsFixed(0),
-            '${currency}${item.rate.toStringAsFixed(2)}',
-            '${currency}${(item.quantity * item.rate).toStringAsFixed(2)}',
+            '${_pdfSymbol(currency)}${item.rate.toStringAsFixed(2)}',
+            '${_pdfSymbol(currency)}${(item.quantity * item.rate).toStringAsFixed(2)}',
           ]).toList()),
           pw.SizedBox(height: 20),
           pw.Row(
@@ -259,14 +264,14 @@ class PdfService {
                 width: 260,
                 child: pw.Column(
                   children: [
-                    _totalRow('Subtotal', '$currency${quote.subtotal.toStringAsFixed(2)}'),
+                    _totalRow('Subtotal', '${_pdfSymbol(currency)}${quote.subtotal.toStringAsFixed(2)}'),
                     if (quote.taxRate > 0) ...[
                       pw.SizedBox(height: 4),
-                      _totalRow('Tax (${quote.taxRate.toStringAsFixed(1)}%)', '$currency${quote.taxAmount.toStringAsFixed(2)}'),
+                      _totalRow('Tax (${quote.taxRate.toStringAsFixed(1)}%)', '${_pdfSymbol(currency)}${quote.taxAmount.toStringAsFixed(2)}'),
                     ],
                     pw.Container(height: 1, color: PdfColors.grey300),
                     pw.SizedBox(height: 6),
-                    _totalRow('Total', '$currency${quote.total.toStringAsFixed(2)}', bold: true),
+                    _totalRow('Total', '${_pdfSymbol(currency)}${quote.total.toStringAsFixed(2)}', bold: true),
                   ],
                 ),
               ),

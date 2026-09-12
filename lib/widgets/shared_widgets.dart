@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
+import '../core/glass.dart';
 
 // ============ Stat Card ============
 class StatCard extends StatelessWidget {
@@ -24,13 +25,8 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: GlassContainer(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderLight),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -93,7 +89,10 @@ class StatusChip extends StatelessWidget {
       ),
       child: Text(
         label.toUpperCase(),
-        style: (isSmall ? AppTypography.caption(context) : AppTypography.label(context)).copyWith(
+        style: (isSmall
+                ? AppTypography.caption(context)
+                : AppTypography.label(context))
+            .copyWith(
           color: color,
           fontSize: isSmall ? 9 : null,
           fontWeight: FontWeight.w600,
@@ -256,13 +255,9 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+      borderRadius: 12,
       child: Row(
         children: [
           Container(
@@ -327,7 +322,8 @@ Future<bool> showConfirmDialog(
 }) async {
   final result = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(        title: Text(title),
+    builder: (ctx) => AlertDialog(
+      title: Text(title),
       content: Text(message, style: AppTypography.body(context)),
       // ignore: use_build_context_synchronously
       actions: [
@@ -337,7 +333,8 @@ Future<bool> showConfirmDialog(
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: Text(confirmLabel, style: TextStyle(color: confirmColor ?? AppColors.danger)),
+          child: Text(confirmLabel,
+              style: TextStyle(color: confirmColor ?? AppColors.danger)),
         ),
       ],
     ),

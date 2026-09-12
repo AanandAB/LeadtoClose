@@ -22,6 +22,20 @@ class AppSettings {
   final int contractNextNumber;
   final List<String> integrations; // enabled integrations
   final String teamRole; // admin, member, viewer
+
+  /// Live lead sync (Cloudflare worker) — website leads flow into the pipeline.
+  final String leadSyncUrl;
+  final String leadSyncToken;
+  final bool leadSyncEnabled;
+
+  /// Client portal sync (Cloudflare worker) — CRM data pushes up to the portal D1.
+  final String portalSyncUrl;
+  final String portalSyncToken;
+  final bool portalSyncEnabled;
+
+  /// Studio WhatsApp number (digits only) used for lead follow-up deep links.
+  final String studioWhatsappNumber;
+
   final DateTime createdAt;
 
   AppSettings({
@@ -48,6 +62,13 @@ class AppSettings {
     this.contractNextNumber = 1001,
     this.integrations = const [],
     this.teamRole = 'admin',
+    this.leadSyncUrl = '',
+    this.leadSyncToken = '',
+    this.leadSyncEnabled = false,
+    this.portalSyncUrl = '',
+    this.portalSyncToken = '',
+    this.portalSyncEnabled = false,
+    this.studioWhatsappNumber = '15550192834',
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -77,6 +98,13 @@ class AppSettings {
     int? contractNextNumber,
     List<String>? integrations,
     String? teamRole,
+    String? leadSyncUrl,
+    String? leadSyncToken,
+    bool? leadSyncEnabled,
+    String? portalSyncUrl,
+    String? portalSyncToken,
+    bool? portalSyncEnabled,
+    String? studioWhatsappNumber,
   }) {
     return AppSettings(
       businessName: businessName ?? this.businessName,
@@ -102,6 +130,13 @@ class AppSettings {
       contractNextNumber: contractNextNumber ?? this.contractNextNumber,
       integrations: integrations ?? this.integrations,
       teamRole: teamRole ?? this.teamRole,
+      leadSyncUrl: leadSyncUrl ?? this.leadSyncUrl,
+      leadSyncToken: leadSyncToken ?? this.leadSyncToken,
+      leadSyncEnabled: leadSyncEnabled ?? this.leadSyncEnabled,
+      portalSyncUrl: portalSyncUrl ?? this.portalSyncUrl,
+      portalSyncToken: portalSyncToken ?? this.portalSyncToken,
+      portalSyncEnabled: portalSyncEnabled ?? this.portalSyncEnabled,
+      studioWhatsappNumber: studioWhatsappNumber ?? this.studioWhatsappNumber,
       createdAt: createdAt,
     );
   }
@@ -130,6 +165,13 @@ class AppSettings {
         'contractNextNumber': contractNextNumber,
         'integrations': integrations,
         'teamRole': teamRole,
+        'leadSyncUrl': leadSyncUrl,
+        'leadSyncToken': leadSyncToken,
+        'leadSyncEnabled': leadSyncEnabled,
+        'portalSyncUrl': portalSyncUrl,
+        'portalSyncToken': portalSyncToken,
+        'portalSyncEnabled': portalSyncEnabled,
+        'studioWhatsappNumber': studioWhatsappNumber,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -162,6 +204,14 @@ class AppSettings {
                 .toList() ??
             [],
         teamRole: json['teamRole']?.toString() ?? 'admin',
+        leadSyncUrl: json['leadSyncUrl']?.toString() ?? '',
+        leadSyncToken: json['leadSyncToken']?.toString() ?? '',
+        leadSyncEnabled: json['leadSyncEnabled'] == true,
+        portalSyncUrl: json['portalSyncUrl']?.toString() ?? '',
+        portalSyncToken: json['portalSyncToken']?.toString() ?? '',
+        portalSyncEnabled: json['portalSyncEnabled'] == true,
+        studioWhatsappNumber:
+            json['studioWhatsappNumber']?.toString() ?? '15550192834',
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
             DateTime.now(),
       );
