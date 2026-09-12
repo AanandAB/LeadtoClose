@@ -38,6 +38,22 @@ extension ChecklistTrackX on ChecklistTrack {
         (t) => t.name == name,
         orElse: () => ChecklistTrack.website,
       );
+
+  /// Maps a project/lead service category string (as stored on `Project.category`
+  /// or `Lead.serviceType`) to a lifecycle checklist track.
+  static ChecklistTrack fromCategory(String? category) {
+    final c = (category ?? '').trim().toLowerCase();
+    if (c.contains('web app') || c.contains('saas') || c == 'webapp') {
+      return ChecklistTrack.webapp;
+    }
+    if (c.contains('website') || c.contains('site')) {
+      return ChecklistTrack.website;
+    }
+    if (c.contains('software') || c.contains('erp') || c.contains('custom')) {
+      return ChecklistTrack.software;
+    }
+    return ChecklistTrack.software; // safe default
+  }
 }
 
 /// Bitnexel delivery lifecycle phases, shared across all three tracks.
@@ -160,8 +176,7 @@ class ChecklistTemplate {
 
   const ChecklistTemplate({required this.track, required this.phases});
 
-  int get totalItems =>
-      phases.fold(0, (sum, p) => sum + p.items.length);
+  int get totalItems => phases.fold(0, (sum, p) => sum + p.items.length);
 }
 
 /// A persisted, per-project instance of a template with live check state.
@@ -199,7 +214,8 @@ class ChecklistInstance {
   bool get allCriticalDone {
     for (final phase in template.phases) {
       for (final item in phase.items) {
-        if (item.severity == ChecklistSeverity.critical && checked[item.id] != true) {
+        if (item.severity == ChecklistSeverity.critical &&
+            checked[item.id] != true) {
           return false;
         }
       }
@@ -324,7 +340,8 @@ const _sharedQaSecurity = ChecklistPhaseDef(
     ChecklistItemDef(
       id: 'sec_headers',
       title: 'Security headers set',
-      detail: 'CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.',
+      detail:
+          'CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.',
       severity: ChecklistSeverity.required,
     ),
     ChecklistItemDef(
@@ -337,7 +354,8 @@ const _sharedQaSecurity = ChecklistPhaseDef(
     ChecklistItemDef(
       id: 'sec_encryption',
       title: 'Encryption at rest & in transit verified',
-      detail: 'AES-256 at rest, TLS in transit, secrets in a managed vault — never in code.',
+      detail:
+          'AES-256 at rest, TLS in transit, secrets in a managed vault — never in code.',
       severity: ChecklistSeverity.critical,
     ),
     ChecklistItemDef(
@@ -367,7 +385,8 @@ const _sharedQaSecurity = ChecklistPhaseDef(
     ChecklistItemDef(
       id: 'dpdp_children',
       title: 'DPDP Act 2023 — children’s data safeguards (if applicable)',
-      detail: 'Verifiable parental consent and no tracking/behavioural ads for minors.',
+      detail:
+          'Verifiable parental consent and no tracking/behavioural ads for minors.',
       severity: ChecklistSeverity.recommended,
     ),
   ],
@@ -558,7 +577,8 @@ const _softwareTemplate = ChecklistTemplate(
         ),
         ChecklistItemDef(
           id: 'sw_disc_integration',
-          title: 'Integration inventory (Tally, WhatsApp, payment, etc.) listed',
+          title:
+              'Integration inventory (Tally, WhatsApp, payment, etc.) listed',
           severity: ChecklistSeverity.required,
         ),
         ChecklistItemDef(

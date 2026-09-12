@@ -178,9 +178,11 @@ class LeadSyncService {
       source: r.source.startsWith('Website') || r.source.contains('Wizard')
           ? r.source
           : 'Website — ${r.source}',
+      serviceType: r.service,
       stage: LeadStage.newLead,
       score: budget >= 1000000 ? 'hot' : (budget > 0 ? 'warm' : 'cold'),
       estimatedBudget: budget,
+      message: r.message,
       notes: [
         LeadNote(
           text:

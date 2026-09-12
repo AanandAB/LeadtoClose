@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/lead.dart';
 import '../../models/client.dart';
+import '../../models/project.dart';
+import '../../models/lifecycle_checklist.dart';
 import '../../providers.dart';
 import '../../widgets/shared_widgets.dart';
 
@@ -87,11 +89,9 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
     );
   }
 
-  Widget _buildColumn(
-      BuildContext context, LeadStage stage, List<Lead> leads) {
+  Widget _buildColumn(BuildContext context, LeadStage stage, List<Lead> leads) {
     final color = AppTheme.stageColor(stage.name);
-    final isTerminalStage =
-        stage == LeadStage.won || stage == LeadStage.lost;
+    final isTerminalStage = stage == LeadStage.won || stage == LeadStage.lost;
 
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -117,7 +117,8 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(                    stage.name.replaceAll('_', ' ').toUpperCase(),
+                Text(
+                  stage.name.replaceAll('_', ' ').toUpperCase(),
                   style: AppTypography.label(context).copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,
@@ -146,8 +147,8 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.bgDeep,
-              borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(12)),
               border: Border.all(color: AppColors.borderLight),
             ),
             child: Column(
@@ -250,8 +251,7 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
                 ),
                 if (isOverdue) ...[
                   const SizedBox(width: 8),
-                  Icon(Icons.warning_amber,
-                      size: 10, color: AppColors.danger),
+                  Icon(Icons.warning_amber, size: 10, color: AppColors.danger),
                   const SizedBox(width: 4),
                   Text(
                     'Overdue',
@@ -291,7 +291,9 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
     final emailCtrl = TextEditingController();
     final companyCtrl = TextEditingController();
     final budgetCtrl = TextEditingController();
+    final messageCtrl = TextEditingController();
     String source = 'Direct';
+    String serviceType = 'Website';
     String score = 'warm';
 
     showDialog(
@@ -351,8 +353,7 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
                     DropdownMenuItem(value: 'Upwork', child: Text('Upwork')),
                     DropdownMenuItem(
                         value: 'LinkedIn', child: Text('LinkedIn')),
-                    DropdownMenuItem(
-                        value: 'Website', child: Text('Website')),
+                    DropdownMenuItem(value: 'Website', child: Text('Website')),
                     DropdownMenuItem(value: 'Other', child: Text('Other')),
                   ],
                   onChanged: (v) => source = v!,
@@ -372,6 +373,33 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
                   ],
                   onChanged: (v) => score = v!,
                 ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: serviceType,
+                  decoration: const InputDecoration(
+                    labelText: 'Service Type',
+                    prefixIcon: Icon(Icons.layers_outlined, size: 20),
+                  ),
+                  dropdownColor: AppColors.bgCard,
+                  items: const [
+                    DropdownMenuItem(value: 'Website', child: Text('Website')),
+                    DropdownMenuItem(
+                        value: 'Custom Software',
+                        child: Text('Custom Software')),
+                    DropdownMenuItem(value: 'Web App', child: Text('Web App')),
+                  ],
+                  onChanged: (v) => serviceType = v!,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: messageCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Message / Requirements',
+                    hintText: 'What does the client need?',
+                    alignLabelWithHint: true,
+                  ),
+                ),
               ],
             ),
           ),
@@ -390,9 +418,10 @@ class _PipelineScreenState extends ConsumerState<PipelineScreen> {
                 email: emailCtrl.text.trim(),
                 company: companyCtrl.text.trim(),
                 source: source,
+                serviceType: serviceType,
                 score: score,
-                estimatedBudget:
-                    double.tryParse(budgetCtrl.text) ?? 0,
+                estimatedBudget: double.tryParse(budgetCtrl.text) ?? 0,
+                message: messageCtrl.text.trim(),
                 stage: LeadStage.newLead,
               );
               ref.read(leadsProvider.notifier).addLead(lead);
@@ -472,8 +501,7 @@ class _LeadDetailSheet extends ConsumerWidget {
                   children: [
                     Text(lead.name, style: AppTypography.heading1(context)),
                     if (lead.company.isNotEmpty)
-                      Text(lead.company,
-                          style: AppTypography.body(context)),
+                      Text(lead.company, style: AppTypography.body(context)),
                   ],
                 ),
               ),
@@ -485,25 +513,100 @@ class _LeadDetailSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Info chips
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
+          // Message (the original inquiry)
+          if (lead.message.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.chat_bubble_outline,
+                          size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text('Message',
+                          style: AppTypography.label(context)
+                              .copyWith(color: AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(lead.message, style: AppTypography.body(context)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Contact + details
+          Text('Details', style: AppTypography.heading3(context)),
+          const SizedBox(height: 8),
+          _detailRow(Icons.email_outlined, 'Email', lead.email),
+          _detailRow(Icons.phone_outlined, 'Phone', lead.phone),
+          _detailRow(Icons.source_outlined, 'Source', lead.source),
+          if (lead.serviceType.isNotEmpty)
+            _detailRow(Icons.layers_outlined, 'Service', lead.serviceType),
+          if (lead.assignedTo.isNotEmpty)
+            _detailRow(Icons.person_outline, 'Assigned to', lead.assignedTo),
+          _detailRow(
+              Icons.attach_money,
+              'Budget',
+              lead.estimatedBudget > 0
+                  ? AppCurrency.format(lead.estimatedBudget)
+                  : '—'),
+          const SizedBox(height: 8),
+
+          // Timeline
+          _detailRow(Icons.event_available, 'Created',
+              DateFormat('MMM d, yyyy').format(lead.createdAt)),
+          _detailRow(Icons.schedule, 'Last contacted',
+              DateFormat('MMM d, yyyy').format(lead.lastContactedAt)),
+          if (lead.followUpDate != null)
+            _detailRow(
+              Icons.alarm,
+              'Follow-up',
+              '${DateFormat('MMM d, yyyy').format(lead.followUpDate!)}'
+                  '${lead.isOverdue ? '  ·  Overdue' : ''}',
+              valueColor: lead.isOverdue ? AppColors.danger : null,
+            ),
+          const SizedBox(height: 8),
+
+          // Score
+          Row(
             children: [
-              if (lead.email.isNotEmpty)
-                _infoChip(Icons.email_outlined, lead.email),
-              if (lead.phone.isNotEmpty)
-                _infoChip(Icons.phone_outlined, lead.phone),
-              _infoChip(Icons.source, lead.source),
-              _infoChip(Icons.calendar_today,
-                  DateFormat('MMM d, yyyy').format(lead.createdAt)),
-              if (lead.estimatedBudget > 0)
-                _infoChip(
-                    Icons.attach_money, AppCurrency.format(lead.estimatedBudget)),
+              Text('Score  ', style: AppTypography.body(context)),
               ScoreBadge(score: lead.score),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
+
+          // Tags
+          if (lead.tags.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: lead.tags
+                  .map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(tag,
+                            style: AppTypography.caption(context)
+                                .copyWith(color: AppColors.primaryLight)),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+          const SizedBox(height: 16),
 
           // Stage change
           Text('Move to Stage', style: AppTypography.heading3(context)),
@@ -527,17 +630,15 @@ class _LeadDetailSheet extends ConsumerWidget {
                         Navigator.pop(context);
                       },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? color.withOpacity(0.2)
                         : AppColors.bgSurface,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected
-                          ? color
-                          : AppColors.borderLight,
+                      color: isSelected ? color : AppColors.borderLight,
                     ),
                   ),
                   child: Text(
@@ -553,11 +654,11 @@ class _LeadDetailSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Notes
+          // Notes (full history)
           if (lead.notes.isNotEmpty) ...[
             Text('Notes', style: AppTypography.heading3(context)),
             const SizedBox(height: 8),
-            ...lead.notes.reversed.take(5).map((note) => Padding(
+            ...lead.notes.reversed.map((note) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -565,10 +666,60 @@ class _LeadDetailSheet extends ConsumerWidget {
                       color: AppColors.bgSurface,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(note.text,
-                        style: AppTypography.body(context)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(note.text, style: AppTypography.body(context)),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('MMM d, yyyy · h:mm a')
+                              .format(note.timestamp),
+                          style: AppTypography.caption(context),
+                        ),
+                      ],
+                    ),
                   ),
                 )),
+            const SizedBox(height: 16),
+          ],
+
+          // Activity timeline
+          if (lead.activities.isNotEmpty) ...[
+            Text('Activity', style: AppTypography.heading3(context)),
+            const SizedBox(height: 8),
+            ...lead.activities.reversed.map((a) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(_activityIcon(a.type),
+                            size: 14, color: AppColors.primaryLight),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(a.description,
+                                style: AppTypography.body(context)),
+                            Text(
+                              DateFormat('MMM d, yyyy · h:mm a')
+                                  .format(a.timestamp),
+                              style: AppTypography.caption(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+            const SizedBox(height: 16),
           ],
 
           // Actions
@@ -581,7 +732,8 @@ class _LeadDetailSheet extends ConsumerWidget {
                 onPressed: () => _convertToClient(context, ref, lead),
                 icon: const Icon(Icons.person_add_rounded, size: 18),
                 label: const Text('Convert to Client'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success),
               ),
             ),
           if (lead.stage == LeadStage.won) const SizedBox(height: 12),
@@ -593,13 +745,10 @@ class _LeadDetailSheet extends ConsumerWidget {
                     final confirm = await showConfirmDialog(
                       context,
                       title: 'Delete Lead',
-                      message:
-                          'Are you sure you want to delete ${lead.name}?',
+                      message: 'Are you sure you want to delete ${lead.name}?',
                     );
                     if (confirm) {
-                      ref
-                          .read(leadsProvider.notifier)
-                          .deleteLead(lead.id);
+                      ref.read(leadsProvider.notifier).deleteLead(lead.id);
                       Navigator.pop(context);
                     }
                   },
@@ -619,16 +768,85 @@ class _LeadDetailSheet extends ConsumerWidget {
     );
   }
 
-  void _convertToClient(BuildContext context, WidgetRef ref, Lead lead) async {
-    final confirm = await showConfirmDialog(
-      context,
-      title: 'Convert to Client',
-      message: 'Convert ${lead.name} to a client? This will create a new client record.',
-      confirmLabel: 'Convert',
-      confirmColor: AppColors.success,
-    );
-    if (!confirm) return;
+  Future<void> _convertToClient(
+      BuildContext context, WidgetRef ref, Lead lead) async {
+    // Collect project details before converting (project name, service type,
+    // budget). These seed the new Client, Project and lifecycle checklist.
+    final projectNameCtrl = TextEditingController(
+        text: lead.company.isNotEmpty ? lead.company : lead.name);
+    final budgetCtrl = TextEditingController(
+        text: lead.estimatedBudget > 0
+            ? lead.estimatedBudget.toStringAsFixed(0)
+            : '');
+    String serviceType =
+        lead.serviceType.isNotEmpty ? lead.serviceType : 'Custom Software';
 
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Convert to Client & Project',
+            style: AppTypography.heading2(context)),
+        content: SizedBox(
+          width: 400,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: projectNameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Project name *',
+                    prefixIcon: Icon(Icons.folder_outlined, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: serviceType,
+                  decoration: const InputDecoration(
+                    labelText: 'Service type',
+                    prefixIcon: Icon(Icons.layers_outlined, size: 20),
+                  ),
+                  dropdownColor: AppColors.bgCard,
+                  items: const [
+                    DropdownMenuItem(value: 'Website', child: Text('Website')),
+                    DropdownMenuItem(
+                        value: 'Custom Software',
+                        child: Text('Custom Software')),
+                    DropdownMenuItem(value: 'Web App', child: Text('Web App')),
+                  ],
+                  onChanged: (v) => serviceType = v!,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: budgetCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Budget',
+                    prefixIcon: Icon(Icons.attach_money, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Convert'),
+          ),
+        ],
+      ),
+    );
+    if (submitted != true) return;
+
+    final projectName = projectNameCtrl.text.trim().isEmpty
+        ? (lead.company.isNotEmpty ? lead.company : lead.name)
+        : projectNameCtrl.text.trim();
+
+    // 1) Create the client (as before).
     final client = Client(
       id: lead.id,
       companyName: lead.company.isNotEmpty ? lead.company : lead.name,
@@ -645,27 +863,87 @@ class _LeadDetailSheet extends ConsumerWidget {
       healthScore: 'active',
       tags: lead.tags,
     );
-    ref.read(clientsProvider.notifier).addClient(client);
+    await ref.read(clientsProvider.notifier).addClient(client);
+
+    // 2) Create the linked project. A client can hold multiple projects; each
+    //    conversion creates one project (and one lifecycle checklist).
+    final project = Project(
+      id: 'proj_${lead.id}',
+      name: projectName,
+      clientId: client.id,
+      description: lead.message.isNotEmpty ? lead.message : '',
+      category: serviceType,
+      budget: double.tryParse(budgetCtrl.text.trim()) ?? lead.estimatedBudget,
+      tags: lead.tags,
+    );
+    await ref.read(projectsProvider.notifier).addProject(project);
+
+    // 3) Auto-create the lifecycle checklist, keyed to the new project id.
+    ref.read(checklistsProvider.notifier).ensureChecklist(
+          id: project.id,
+          track: ChecklistTrackX.fromCategory(serviceType),
+          projectName: project.name,
+        );
+
+    // 4) The lead is now a client + project — remove it from the pipeline.
     ref.read(leadsProvider.notifier).deleteLead(lead.id);
+    if (!context.mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Lead converted to client'),
+        content:
+            Text('Converted — client, project & lifecycle checklist created'),
         backgroundColor: AppColors.success,
       ),
     );
   }
 
-  Widget _infoChip(IconData icon, String text) {
+  /// A labelled row for lead details. `valueColor` (optional) tints the value.
+  Widget _detailRow(IconData icon, String label, String value,
+      {Color? valueColor}) {
     return Builder(
-      builder: (context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppColors.textMuted),
-          const SizedBox(width: 4),
-          Text(text, style: AppTypography.bodySmall(context)),
-        ],
+      builder: (context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: AppColors.textMuted),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 110,
+              child: Text(label,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w600,
+                  )),
+            ),
+            Expanded(
+              child: Text(
+                value.isEmpty ? '—' : value,
+                style: AppTypography.body(context).copyWith(
+                  color: valueColor ?? AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  /// Maps a lead activity type string to a material icon.
+  IconData _activityIcon(String type) {
+    switch (type) {
+      case 'email':
+        return Icons.email_outlined;
+      case 'call':
+        return Icons.call_outlined;
+      case 'meeting':
+        return Icons.groups_outlined;
+      case 'stage_change':
+        return Icons.swap_horiz_rounded;
+      default:
+        return Icons.notes_rounded;
+    }
   }
 }

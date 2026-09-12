@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../models/project.dart';
 import '../../models/process_step.dart';
+import '../../models/lifecycle_checklist.dart';
 import '../../models/task.dart';
 import '../../models/invoice.dart';
 import '../../providers.dart';
@@ -21,6 +22,7 @@ class ProjectDetailScreen extends ConsumerStatefulWidget {
 
 class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   String _view = 'kanban';
+  String _section = 'tasks'; // tasks | checklist
 
   @override
   Widget build(BuildContext context) {
@@ -165,11 +167,27 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 // 11-Step process tracker
                 _buildProcessTracker(project),
 
-                // Task board
+                // Section switch: Tasks | Lifecycle Checklist
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                  color: AppColors.bgMid,
+                  child: Row(
+                    children: [
+                      _sectionBtn('tasks', 'Tasks'),
+                      const SizedBox(width: 8),
+                      _sectionBtn('checklist', 'Lifecycle Checklist'),
+                    ],
+                  ),
+                ),
+
+                // Main panel
                 Expanded(
-                  child: _view == 'kanban'
-                      ? _buildKanban(tasks)
-                      : _buildList(tasks, project.id),
+                  child: _section == 'checklist'
+                      ? _buildChecklistPanel(project)
+                      : (_view == 'kanban'
+                          ? _buildKanban(tasks)
+                          : _buildList(tasks, project.id)),
                 ),
               ],
             ),
@@ -344,6 +362,204 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         .updateProject(project.copyWith(step: step));
     // Push the updated step to the portal right away (best-effort).
     ref.read(portalSyncProvider).syncNow();
+  }
+
+  Widget _sectionBtn(String section, String label) {
+    final selected = _section == section;
+    return GestureDetector(
+      onTap: () => setState(() => _section = section),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.label(context).copyWith(
+            color: selected ? AppColors.primaryLight : AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Lifecycle checklist panel for this project (9 phases, checkable items).
+  /// Keyed by project id so each project keeps its own independent checklist.
+  Widget _buildChecklistPanel(Project project) {
+    final checklists = ref.watch(checklistsProvider);
+    final instance = checklists.where((c) => c.id == project.id).firstOrNull;
+
+    if (instance == null) {
+      return Center(
+        child: EmptyState(
+          icon: Icons.checklist_rounded,
+          title: 'No lifecycle checklist yet',
+          subtitle: 'Create the delivery checklist for this project',
+          actionLabel: 'Create Checklist',
+          onAction: () => ref.read(checklistsProvider.notifier).ensureChecklist(
+                id: project.id,
+                track: ChecklistTrackX.fromCategory(project.category),
+                projectName: project.name,
+              ),
+        ),
+      );
+    }
+
+    final template = instance.template;
+    final progress = instance.progress;
+    final done = instance.doneCount;
+    final total = instance.totalCount;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Progress header
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.checklist_rounded, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(instance.track.label,
+                      style: AppTypography.heading3(context)),
+                  const Spacer(),
+                  Text('$done / $total',
+                      style: AppTypography.label(context)
+                          .copyWith(color: AppColors.textMuted)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6,
+                  backgroundColor: AppColors.bgDeep,
+                  valueColor: AlwaysStoppedAnimation(AppColors.success),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text('${(progress * 100).toStringAsFixed(0)}% complete',
+                  style: AppTypography.caption(context)),
+              if (!instance.allCriticalDone)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    '⚠ Critical compliance/security gates still pending',
+                    style: AppTypography.caption(context)
+                        .copyWith(color: AppColors.warning),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Phases
+        ...template.phases.map((phase) {
+          final items = phase.items;
+          final doneCount =
+              items.where((i) => instance.checked[i.id] == true).length;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Theme(
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(phase.phase.label,
+                          style: AppTypography.body(context)
+                              .copyWith(fontWeight: FontWeight.w700)),
+                    ),
+                    Text('$doneCount/${items.length}',
+                        style: AppTypography.caption(context)
+                            .copyWith(color: AppColors.textMuted)),
+                  ],
+                ),
+                children: items
+                    .map((item) => _checklistItemTile(instance, item))
+                    .toList(),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _checklistItemTile(ChecklistInstance instance, ChecklistItemDef item) {
+    final done = instance.checked[item.id] == true;
+    return CheckboxListTile(
+      value: done,
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        item.title,
+        style: AppTypography.body(context).copyWith(
+          color: done ? AppColors.textMuted : AppColors.textPrimary,
+          decoration: done ? TextDecoration.lineThrough : null,
+        ),
+      ),
+      subtitle: item.detail.isEmpty
+          ? null
+          : Text(item.detail,
+              style: AppTypography.caption(context)
+                  .copyWith(color: AppColors.textMuted)),
+      secondary: _checklistSeverityChip(item.severity),
+      activeColor: AppColors.success,
+      onChanged: (_) => ref
+          .read(checklistsProvider.notifier)
+          .toggleItem(instance.id, item.id),
+    );
+  }
+
+  Widget _checklistSeverityChip(ChecklistSeverity severity) {
+    Color color;
+    switch (severity) {
+      case ChecklistSeverity.critical:
+        color = Colors.redAccent;
+        break;
+      case ChecklistSeverity.required:
+        color = Colors.orangeAccent;
+        break;
+      case ChecklistSeverity.recommended:
+        color = AppColors.info;
+        break;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Text(
+        severity.label,
+        style: AppTypography.caption(context)
+            .copyWith(color: color, fontSize: 10, fontWeight: FontWeight.w700),
+      ),
+    );
   }
 
   Widget _viewBtn(String view, IconData icon) {

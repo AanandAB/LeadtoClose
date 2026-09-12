@@ -1,4 +1,12 @@
-enum LeadStage { newLead, contacted, qualified, proposalSent, negotiation, won, lost }
+enum LeadStage {
+  newLead,
+  contacted,
+  qualified,
+  proposalSent,
+  negotiation,
+  won,
+  lost
+}
 
 class Lead {
   final String id;
@@ -7,10 +15,12 @@ class Lead {
   final String phone;
   final String company;
   final String source;
+  final String serviceType; // Website / Custom Software / Web App
   final LeadStage stage;
   final String score; // hot, warm, cold
   final String lostReason;
   final double estimatedBudget;
+  final String message; // original inquiry message (e.g. the website form)
   final String assignedTo;
   final List<String> tags;
   final List<LeadNote> notes;
@@ -27,10 +37,12 @@ class Lead {
     this.phone = '',
     this.company = '',
     this.source = 'Direct',
+    this.serviceType = '',
     this.stage = LeadStage.newLead,
     this.score = 'warm',
     this.lostReason = '',
     this.estimatedBudget = 0,
+    this.message = '',
     this.assignedTo = '',
     this.tags = const [],
     this.notes = const [],
@@ -71,10 +83,12 @@ class Lead {
     String? phone,
     String? company,
     String? source,
+    String? serviceType,
     LeadStage? stage,
     String? score,
     String? lostReason,
     double? estimatedBudget,
+    String? message,
     String? assignedTo,
     List<String>? tags,
     List<LeadNote>? notes,
@@ -90,10 +104,12 @@ class Lead {
       phone: phone ?? this.phone,
       company: company ?? this.company,
       source: source ?? this.source,
+      serviceType: serviceType ?? this.serviceType,
       stage: stage ?? this.stage,
       score: score ?? this.score,
       lostReason: lostReason ?? this.lostReason,
       estimatedBudget: estimatedBudget ?? this.estimatedBudget,
+      message: message ?? this.message,
       assignedTo: assignedTo ?? this.assignedTo,
       tags: tags ?? this.tags,
       notes: notes ?? this.notes,
@@ -112,10 +128,12 @@ class Lead {
         'phone': phone,
         'company': company,
         'source': source,
+        'serviceType': serviceType,
         'stage': stage.name,
         'score': score,
         'lostReason': lostReason,
         'estimatedBudget': estimatedBudget,
+        'message': message,
         'assignedTo': assignedTo,
         'tags': tags,
         'notes': notes.map((n) => n.toJson()).toList(),
@@ -133,6 +151,7 @@ class Lead {
         phone: json['phone']?.toString() ?? '',
         company: json['company']?.toString() ?? '',
         source: json['source']?.toString() ?? 'Direct',
+        serviceType: json['serviceType']?.toString() ?? '',
         stage: LeadStage.values.firstWhere(
           (e) => e.name == json['stage'],
           orElse: () => LeadStage.newLead,
@@ -140,6 +159,7 @@ class Lead {
         score: json['score']?.toString() ?? 'warm',
         lostReason: json['lostReason']?.toString() ?? '',
         estimatedBudget: (json['estimatedBudget'] as num?)?.toDouble() ?? 0,
+        message: json['message']?.toString() ?? '',
         assignedTo: json['assignedTo']?.toString() ?? '',
         tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
         notes: (json['notes'] as List?)
@@ -158,8 +178,7 @@ class Lead {
         lastContactedAt:
             DateTime.tryParse(json['lastContactedAt']?.toString() ?? '') ??
                 DateTime.now(),
-        followUpDate:
-            DateTime.tryParse(json['followUpDate']?.toString() ?? ''),
+        followUpDate: DateTime.tryParse(json['followUpDate']?.toString() ?? ''),
       );
 }
 
@@ -176,8 +195,8 @@ class LeadNote {
 
   factory LeadNote.fromJson(Map<dynamic, dynamic> json) => LeadNote(
         text: json['text']?.toString() ?? '',
-        timestamp:
-            DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
+        timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ??
+            DateTime.now(),
       );
 }
 
@@ -201,7 +220,7 @@ class LeadActivity {
   factory LeadActivity.fromJson(Map<dynamic, dynamic> json) => LeadActivity(
         type: json['type']?.toString() ?? 'note',
         description: json['description']?.toString() ?? '',
-        timestamp:
-            DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
+        timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ??
+            DateTime.now(),
       );
 }

@@ -118,7 +118,7 @@ class PortalSyncService {
                 'id': p.id,
                 'client_email': emailByClientId[p.clientId],
                 'name': p.name,
-                'category': 'Custom Software',
+                'category': p.category,
                 'status': p.status.name,
                 'stage': _stageForStatus(p.status),
                 'summary': p.description.isNotEmpty ? p.description : p.name,

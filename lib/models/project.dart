@@ -16,6 +16,7 @@ class Project {
   final DateTime? completedDate;
   final List<String> tags;
   final String templateId;
+  final String category; // Website / Custom Software / Web App
   final int step;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -34,6 +35,7 @@ class Project {
     this.completedDate,
     this.tags = const [],
     this.templateId = '',
+    this.category = 'Custom Software',
     this.step = 0,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -59,6 +61,7 @@ class Project {
     DateTime? dueDate,
     DateTime? completedDate,
     List<String>? tags,
+    String? category,
     int? step,
     DateTime? updatedAt,
   }) {
@@ -76,6 +79,7 @@ class Project {
       completedDate: completedDate ?? this.completedDate,
       tags: tags ?? this.tags,
       templateId: templateId,
+      category: category ?? this.category,
       step: step ?? this.step,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -96,6 +100,7 @@ class Project {
         'completedDate': completedDate?.toIso8601String(),
         'tags': tags,
         'templateId': templateId,
+        'category': category,
         'step': step,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
@@ -119,6 +124,7 @@ class Project {
             DateTime.tryParse(json['completedDate']?.toString() ?? ''),
         tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
         templateId: json['templateId']?.toString() ?? '',
+        category: json['category']?.toString() ?? 'Custom Software',
         step: (json['step'] as num?)?.toInt() ?? 0,
         createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
             DateTime.now(),
